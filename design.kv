@@ -260,27 +260,27 @@ WindowManager:
                     Button:
                         size_hint: 0.1,1
                         text: "Shutdown"
-                        on_release: root.shutDown()
+                        on_release: root.appShutDown()
 
                     Button:
                         size_hint: 0.1,1
                         text: "Reset"
-                        on_release: root.reset()
+                        on_release: root.appReset()
 
                     Button:
                         size_hint: 0.1,1
                         text: "Stop"
-                        on_release: root.quickStop()
+                        on_release: root.appQuickStop()
 
                     Button:
                         size_hint: .1,1
                         text: "Disable"
-                        on_release: root.disableVoltage()
+                        on_release: root.appDisableVoltage()
 
                     Button:
                         size_hint: .1,1
                         text: "Enable"
-                        on_release: root.enable()
+                        on_release: root.appEnable()
 
 <PIDWindow>:
     name: "pidscreen"
@@ -367,16 +367,16 @@ WindowManager:
             spacing: 25,50
 
             Button:
-                size_hint: .2,.2
+                size_hint: .1,.1
                 text: "Start Periodic Messages"
                 on_release:
-                    root.startPeriodic()
+                    root.dataStarPeriodic()
 
             Button:
-                size_hint: .2,.2
+                size_hint: .1,.1
                 text: "Stop Periodic Messages"
                 on_release:
-                    root.stopPeriodic()
+                    root.dataStopPeriodic()
 
 
 
