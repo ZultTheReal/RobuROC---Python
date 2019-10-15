@@ -5,7 +5,7 @@ import DataWindow
 import ApplicationManager
 from kivy.app import App
 from kivy.lang.builder import Builder
-from kivy.properties import ObjectProperty
+from kivy.properties import ObjectProperty, NumericProperty
 
 liveSig = [None, None, None, None]
 curSig = [None, None, None, None]
@@ -15,6 +15,7 @@ motorSpeed1 = ObjectProperty(None)
 motorSpeed2 = ObjectProperty(None)
 motorSpeed3 = ObjectProperty(None)
 motorSpeed4 = ObjectProperty(None)
+manualspeed = NumericProperty(150000)
 
 # network = canopen.Network()
 # network.connect(bustype='pcan', channel='PCAN_USBBUS1', bitrate=1000000)

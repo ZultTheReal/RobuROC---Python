@@ -7,8 +7,6 @@ class WindowManager(ScreenManager):
 
     def do_layout(self, *args, **kwargs):
         super(WindowManager, self).do_layout()
-        width, height = Window.size
-        if width < 800:
-            Window.size = 800, Window.size[1]
-        if height < 480:
-            Window.size = Window.size[0], 480
+        Window.borderless = True
+        Window.maximize()
+        Window.size = 800, 480

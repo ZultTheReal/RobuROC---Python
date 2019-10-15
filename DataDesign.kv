@@ -19,24 +19,31 @@
                 font_size: 30
                 text: "Data Overview"
 
+
         GridLayout:
             cols:2
-            size_hint: 1,1
-            spacing: 25,50
 
-            Button:
-                size_hint: .1,.1
-                text: "Start Periodic Messages"
-                on_release:
-                    root.dataStarPeriodic()
+            AnchorLayout:
+                anchor_x: 'left'
+                anchor_y: 'center'
 
-            Button:
-                size_hint: .1,.1
-                text: "Stop Periodic Messages"
-                on_release:
-                    root.dataStopPeriodic()
+                canvas:
+                    Color:
+                        rgb: [1, 0, 0]
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
 
+            AnchorLayout:
+                anchor_x: 'left'
+                anchor_y: 'center'
 
+                canvas:
+                    Color:
+                        rgb: [0, 1, 0]
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
 
         BoxLayout:
             orientation: 'vertical'
@@ -67,3 +74,15 @@
                 StackLayout:
                     pos_hint: {'right': 1, 'top': 1}
                     orientation: 'rl-bt'
+
+                    Button:
+                        size_hint: .25,1
+                        text: "Start Periodic Messages"
+                        on_release:
+                            root.dataStarPeriodic()
+
+                    Button:
+                        size_hint: .25,1
+                        text: "Stop Periodic Messages"
+                        on_release:
+                            root.dataStopPeriodic()

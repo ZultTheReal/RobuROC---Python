@@ -1,50 +1,61 @@
-import StateCommands as sc
-import MovementCommands as mc
+import StateCommands
+import MovementCommands
+from MovementCommands import *
+from StateCommands import *
 from kivy.uix.screenmanager import ScreenManager, Screen
 
 class MainScreen(Screen):
 
     def mwForward(self):
-        mc.forward(self)
+        forward(self)
 
     def mwBackward(self):
-        mc.backward(self)
+        backward(self)
 
     def mwLeft(self):
-        mc.moveLeft(self)
+        moveLeft(self)
 
     def mwRight(self):
-        mc.moveRight(self)
+        moveRight(self)
 
     def mwStop(self):
-        mc.holdStill(self)
+        holdStill(self)
+
+    def mwmanualSpeed(self):
+        if self.manualspeed.text == None:
+            manualspeed = 150000
+            checkMotorSpeed(manualspeed)
+        else:
+            manualspeed = int(self.manualspeed.text)
+            checkMotorSpeed(manualspeed)
+
 
     def mwsetSpeed1(self):
-        mc.setSpeed1(self)
+        setSpeed1(self)
 
     def mwsetSpeed2(self):
-        mc.setSpeed2(self)
+        setSpeed2(self)
 
     def mwsetSpeed3(self):
-        mc.setSpeed3(self)
+        setSpeed3(self)
 
     def mwsetSpeed4(self):
-        mc.setSpeed4(self)
+        setSpeed4(self)
 
     def mwsetSpeedAll(self):
-        mc.setSpeedAll(self)
+        setSpeedAll(self)
 
     def mwReset(self):
-        sc.reset()
+        reset()
 
     def mwQuickStop(self):
-        sc.quickStop()
+        quickStop()
 
     def mwEnable(self):
-        sc.enable()
+        enable()
 
     def mwDisableVoltage(self):
-        sc.disableVoltage()
+        disableVoltage()
 
     def mwShutDown(self):
-        sc.shutDown()
+        shutDown()
