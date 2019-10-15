@@ -1,10 +1,13 @@
+#:include PIDWindow.kv
+#:include DataWindow.kv
+
 WindowManager:
-    MainWindow:
-    PIDWindow:
-    DataWindow:
+    MainScreen:
+    PIDScreen:
+    DataScreen:
 
 
-<MainWindow>:
+<MainScreen>:
     name: "main"
     motorSpeed1: motorSpeed1
     motorSpeed2: motorSpeed2
@@ -75,7 +78,7 @@ WindowManager:
                                 size_hint: 0.2,1
                                 text: "Set speed"
                                 on_release:
-                                    root.setSpeed1()
+                                    root.mwsetSpeed1()
 
 
 
@@ -103,7 +106,7 @@ WindowManager:
                                 size_hint: 0.2,1
                                 text: "Set speed"
                                 on_release:
-                                    root.setSpeed2()
+                                    root.mwsetSpeed2()
 
                         StackLayout:
                             pos_hint: {'x': 0, 'center': 1}
@@ -129,7 +132,7 @@ WindowManager:
                                 size_hint: 0.2,1
                                 text: "Set speed"
                                 on_release:
-                                    root.setSpeed3()
+                                    root.mwsetSpeed3()
 
                         StackLayout:
                             pos_hint: {'x': 0, 'center': 1}
@@ -156,7 +159,7 @@ WindowManager:
                                 size_hint: 0.2,1
                                 text: "Set speed"
                                 on_release:
-                                    root.setSpeed4()
+                                    root.mwsetSpeed4()
 
                         StackLayout:
                             pos_hint: {'x': 0.1, 'bottom': 1}
@@ -165,7 +168,7 @@ WindowManager:
                             Button:
                                 size_hint: .8,.5
                                 text: "Set speed for all"
-                                on_release: root.setSpeedAll()
+                                on_release: root.mwsetSpeedAll()
 
 
             RelativeLayout:
@@ -182,9 +185,9 @@ WindowManager:
                     size_hint: 0.2,0.2
                     text: "Forward"
                     on_press:
-                        root.forward()
+                        root.mwForward()
                     on_release:
-                        root.holdStill()
+                        root.mwStop()
 
 
                 Button:
@@ -192,27 +195,27 @@ WindowManager:
                     size_hint: 0.2,0.2
                     text: "Backward"
                     on_press:
-                        root.backward()
+                        root.mwBackward()
                     on_release:
-                        root.holdStill()
+                        root.mwStop()
 
                 Button:
                     pos_hint: {'x': 0, 'top': .6}
                     size_hint: .2,.2
                     text: "Left"
                     on_press:
-                        root.moveLeft()
+                        root.mwLeft()
                     on_release:
-                        root.holdStill()
+                        root.mwStop()
 
                 Button:
                     pos_hint: {'x': .8, 'top': .6}
                     size_hint: .2,.2
                     text: "Right"
                     on_press:
-                        root.moveRight()
+                        root.mwRight()
                     on_release:
-                        root.holdStill()
+                        root.mwStop()
 
 
 #            Label:
@@ -260,153 +263,24 @@ WindowManager:
                     Button:
                         size_hint: 0.1,1
                         text: "Shutdown"
-                        on_release: root.appShutDown()
+                        on_release: root.mwShutDown()
 
                     Button:
                         size_hint: 0.1,1
                         text: "Reset"
-                        on_release: root.appReset()
+                        on_release: root.mwReset()
 
                     Button:
                         size_hint: 0.1,1
                         text: "Stop"
-                        on_release: root.appQuickStop()
+                        on_release: root.mwQuickStop()
 
                     Button:
                         size_hint: .1,1
                         text: "Disable"
-                        on_release: root.appDisableVoltage()
+                        on_release: root.mwDisableVoltage()
 
                     Button:
                         size_hint: .1,1
                         text: "Enable"
-                        on_release: root.appEnable()
-
-<PIDWindow>:
-    name: "pidscreen"
-
-    #canvas:
-    #    Rectangle:
-    #        pos: self.pos
-    #        size: self.size
-    #        source: "Back6.png"
-
-    BoxLayout:
-        orientation: 'vertical'
-
-        BoxLayout:
-            orientation: 'vertical'
-            size_hint_y: .05
-
-
-            Label:
-                font_size: 30
-                text: "PID Tuning"
-
-        GridLayout:
-            cols:2
-            size_hint: 1,1
-            spacing: 25,50
-
-
-        BoxLayout:
-            orientation: 'vertical'
-            size_hint_y: .1
-
-            RelativeLayout:
-
-                StackLayout:
-                    pos_hint: {'right': 1, 'top': 1}
-                    orientation: 'lr-bt'
-
-                    Button:
-                        size_hint: .125,1
-                        text: "Back to Main"
-                        on_release:
-                            app.root.current = "main"
-                            root.manager.transition.direction = "right"
-
-
-                    Button:
-                        pos_hint: {'left': 1, 'top': 1}
-                        size_hint: .15,1
-                        text: "Data Overview"
-                        on_release:
-                            app.root.current = "datascreen"
-                            root.manager.transition.direction = "left"
-
-
-                StackLayout:
-                    pos_hint: {'right': 1, 'top': 1}
-                    orientation: 'rl-bt'
-
-<DataWindow>:
-    name: "datascreen"
-
-    #canvas:
-    #    Rectangle:
-    #        pos: self.pos
-    #        size: self.size
-    #        source: "Back6.png"
-
-    BoxLayout:
-        orientation: 'vertical'
-
-        BoxLayout:
-            orientation: 'vertical'
-            size_hint_y: .05
-
-
-            Label:
-                font_size: 30
-                text: "Data Overview"
-
-        GridLayout:
-            cols:2
-            size_hint: 1,1
-            spacing: 25,50
-
-            Button:
-                size_hint: .1,.1
-                text: "Start Periodic Messages"
-                on_release:
-                    root.dataStarPeriodic()
-
-            Button:
-                size_hint: .1,.1
-                text: "Stop Periodic Messages"
-                on_release:
-                    root.dataStopPeriodic()
-
-
-
-        BoxLayout:
-            orientation: 'vertical'
-            size_hint_y: .1
-
-            RelativeLayout:
-
-                StackLayout:
-                    pos_hint: {'right': 1, 'top': 1}
-                    orientation: 'lr-bt'
-
-                    Button:
-                        size_hint: .125,1
-                        text: "Back to Main"
-                        on_release:
-                            app.root.current = "main"
-                            root.manager.transition.direction = "right"
-
-                    Button:
-                        pos_hint: {'left': 1, 'top': 1}
-                        size_hint: .1,1
-                        text: "PID Tuning"
-                        on_release:
-                            app.root.current = "pidscreen"
-                            root.manager.transition.direction = "left"
-
-
-                StackLayout:
-                    pos_hint: {'right': 1, 'top': 1}
-                    orientation: 'rl-bt'
-
+                        on_release: root.mwEnable()
