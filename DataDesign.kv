@@ -1,5 +1,5 @@
-<PIDScreen>:
-    name: "pidscreen"
+<DataScreen>:
+    name: "datascreen"
 
     #canvas:
     #    Rectangle:
@@ -17,12 +17,25 @@
 
             Label:
                 font_size: 30
-                text: "PID Tuning"
+                text: "Data Overview"
 
         GridLayout:
             cols:2
             size_hint: 1,1
             spacing: 25,50
+
+            Button:
+                size_hint: .1,.1
+                text: "Start Periodic Messages"
+                on_release:
+                    root.dataStarPeriodic()
+
+            Button:
+                size_hint: .1,.1
+                text: "Stop Periodic Messages"
+                on_release:
+                    root.dataStopPeriodic()
+
 
 
         BoxLayout:
@@ -36,19 +49,18 @@
                     orientation: 'lr-bt'
 
                     Button:
-                        size_hint: .125,1
-                        text: "Back to Main"
+                        size_hint: .1,1
+                        text: "Home"
                         on_release:
                             app.root.current = "main"
                             root.manager.transition.direction = "right"
 
-
                     Button:
                         pos_hint: {'left': 1, 'top': 1}
-                        size_hint: .15,1
-                        text: "Data Overview"
+                        size_hint: .1,1
+                        text: "PID Tuning"
                         on_release:
-                            app.root.current = "datascreen"
+                            app.root.current = "pidscreen"
                             root.manager.transition.direction = "left"
 
 

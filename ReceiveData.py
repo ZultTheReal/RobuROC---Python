@@ -1,3 +1,5 @@
+import canopen
+
 def readData(canid, data, timestamp):
     print( str(canid) + ":" + str( int.from_bytes(data, byteorder='little', signed=True)))
 

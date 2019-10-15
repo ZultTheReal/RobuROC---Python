@@ -2,12 +2,9 @@ import canopen
 import MainWindow
 import PIDWindow
 import DataWindow
-import can
-import time
+import ApplicationManager
 from kivy.app import App
-from kivy.core.window import Window
 from kivy.lang.builder import Builder
-from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.properties import ObjectProperty
 
 liveSig = [None, None, None, None]
@@ -22,26 +19,9 @@ motorSpeed4 = ObjectProperty(None)
 # network = canopen.Network()
 # network.connect(bustype='pcan', channel='PCAN_USBBUS1', bitrate=1000000)
 
-MainWindow.MainScreen
-PIDWindow.PIDScreen
-DataWindow.DataScreen
-
-class WindowManager(ScreenManager):
-    def __init__(self, **kwargs):
-        super(WindowManager, self).__init__(**kwargs)
-
-    def do_layout(self, *args, **kwargs):
-        super(WindowManager, self).do_layout()
-        width, height = Window.size
-        if width < 800:
-            Window.size = 800, Window.size[1]
-        if height < 480:
-            Window.size = Window.size[0], 480
-
-
-kv = Builder.load_file("MainWindow.kv")
-Builder.load_file("DataWindow.kv")
-Builder.load_file("PIDWindow.kv")
+kv = Builder.load_file("MainDesign.kv")
+Builder.load_file("DataDesign.kv")
+Builder.load_file("PIDDesign.kv")
 
 class RobuROC(App):
     def build(self):
