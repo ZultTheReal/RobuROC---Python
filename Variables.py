@@ -1,8 +1,14 @@
 import canopen
+import datetime
 
 liveSig = [None, None, None, None]
 curSig = [None, None, None, None]
 posSig = [None, None, None, None]
+
+now = datetime.datetime.now()
+
+filename = "logs/Measurements_" + str(now.strftime("%Y-%m-%d_%H-%M-%S")) + ".txt"
+measurements = open(filename, "a+")
 
 addressMap = {
     0: 0x301,
