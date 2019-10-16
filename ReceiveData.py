@@ -5,16 +5,24 @@ import Variables
 from Variables import *
 
 def readData(canid, data, timestamp):
-    measurements.write(str(timestamp) + ";" + str(canid) + ";" + str( int.from_bytes(data, byteorder='little', signed=True)) + "\n")
+
+    scaled = 0
+    value = abs(int.from_bytes(data, byteorder='little', signed=True))
+
+    if (canid in curCanID):
+        scaled = value/currentScaling
+        currentmeasurements.write(str(timestamp) + ";" + str(canid) + ";" + str(scaled) + " [A]" + "\n")
+
+    if (canid in posCanID):
+        scaled = value
+        postionmeasurements.write(str(timestamp) + ";" + str(canid) + ";" + str(scaled) + " [P]" + "\n")
 
 def startPeriodic(self):
     print("Starting periodic messages")
-    measurements.write("Measurement from:" + now.strftime("%Y-%m-%d %H:%M:%S") + "\n\n")
-    measurements.write("Timestamp" + ";" + "CANID" + ";" + "Data" + "\n\n")
-    # RTR - Live Signal Drives
-    #    for i in range(0, 4):
-    #        liveSig[0] = network.send_periodic(1793 + i, 8, .1, remote=True)
-    #        network.subscribe(1793 + i, fc.readData)
+    currentmeasurements.write("Measurement from:" + now.strftime("%Y-%m-%d %H:%M:%S") + "\n\n")
+    currentmeasurements.write("Timestamp" + ";" + "CANID" + ";" + "Data [A]" + "\n\n")
+    postionmeasurements.write("Measurement from:" + now.strftime("%Y-%m-%d %H:%M:%S") + "\n\n")
+    postionmeasurements.write("Timestamp" + ";" + "CANID" + ";" + "Data [P]" + "\n\n")
 
     #RTR - Actual Current
     for i in range(0, 4):
@@ -22,15 +30,14 @@ def startPeriodic(self):
         network.subscribe(897 + i, readData)
 
     #RTR - Actual Position
-    # for i in range(0, 4):
-    #     posSig[0] = network.send_periodic(913 + i, 8, .1, remote=True)
-    #     network.subscribe(913 + i, fc.readData)
+    for i in range(0, 4):
+        posSig[i] = network.send_periodic(913 + i, 8, .1, remote=True)
+        network.subscribe(913 + i, readData)
 
 def stopPeriodic(self):
     print("Stop periodic messages")
-    measurements.close()
+    currentmeasurements.close()
 
     for i in range(0, 4):
-        #posSig[i].stop()
+        posSig[i].stop()
         curSig[i].stop()
-        #liveSig[i].stop()
