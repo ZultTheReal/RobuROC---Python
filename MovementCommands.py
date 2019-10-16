@@ -6,6 +6,9 @@ import Functions
 from Functions import *
 
 
+def setSpeed(id,speed):
+    network.send_message(Variables.addressMap[id], velocityArray(speed), 0)
+
 def forward(self):
     print("Moving forward")
     for i in range(4):
