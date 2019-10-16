@@ -1,4 +1,5 @@
 import MainWindow
+import Variables
 from MainWindow import *
 import MovementCommands
 from MovementCommands import *
@@ -10,12 +11,17 @@ def velocityArray(value):
 
 def checkMotorSpeed(speed):
 
-    if speed == None:
-        setMotorSpeed = 1500000
-
-    elif speed > 5200000:
+    if speed > 5200000:
         print("This value is above the speedlimit, please enter a value below: 5200000")
 
     else:
         print("The motorspeed is now set to:", speed)
-        setMotorSpeed = speed
+        Variables.globalspeed = speed
+
+def convert_manualspeed(temptextinput):
+    converttext = temptextinput
+    if len(converttext) > 0:  # if text is not empty
+        print(format(converttext))
+        checkMotorSpeed(int(converttext))
+    else:
+        print("Error: Empty string")

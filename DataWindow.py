@@ -1,9 +1,9 @@
-import ReceiveData as rd
+import ReceiveData
 from kivy.uix.screenmanager import ScreenManager, Screen
 
 class DataScreen(Screen):
     def dataStarPeriodic(self):
-        rd.startPeriodic(self)
+        ReceiveData.startPeriodic(self)
 
     def dataStopPeriodic(self):
-        rd.stopPeriodic(self)
+        ReceiveData.stopPeriodic(self)

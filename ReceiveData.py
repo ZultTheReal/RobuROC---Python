@@ -1,4 +1,8 @@
 import canopen
+import Functions
+from Functions import *
+import Variables
+from Variables import *
 
 def readData(canid, data, timestamp):
     print( str(canid) + ":" + str( int.from_bytes(data, byteorder='little', signed=True)))
@@ -11,9 +15,9 @@ def startPeriodic(self):
     #        network.subscribe(1793 + i, fc.readData)
 
     #RTR - Actual Current
-    # for i in range(0, 4):
-    #     curSig[i] = network.send_periodic(897 + i, 8, .1, remote=True)
-    #     network.subscribe(897 + i, fc.readData)
+    for i in range(0, 4):
+        curSig[i] = network.send_periodic(897 + i, 8, .1, remote=True)
+        network.subscribe(897 + i, readData)
 
     #RTR - Actual Position
     # for i in range(0, 4):
@@ -23,7 +27,7 @@ def startPeriodic(self):
 def stopPeriodic(self):
     print("Stop periodic messages")
 
-    # for i in range(0, 4):
-    #     posSig[i].stop()
-    #     curSig[i].stop()
-    #     liveSig[i].stop()
+    for i in range(0, 4):
+        #posSig[i].stop()
+        curSig[i].stop()
+        #liveSig[i].stop()

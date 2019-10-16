@@ -22,13 +22,7 @@ class MainScreen(Screen):
         holdStill(self)
 
     def mwmanualSpeed(self):
-        if self.manualspeed.text == None:
-            manualspeed = 150000
-            checkMotorSpeed(manualspeed)
-        else:
-            manualspeed = int(self.manualspeed.text)
-            checkMotorSpeed(manualspeed)
-
+        convert_manualspeed(self.manualspeed.text)
 
     def mwsetSpeed1(self):
         setSpeed1(self)
