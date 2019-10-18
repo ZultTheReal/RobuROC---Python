@@ -1,42 +1,42 @@
-import Variables
-from Variables import *
+import Variables as var
+from Functions import *
 
 def readData(canid, data, timestamp):
     scaled = 0
     value = abs(int.from_bytes(data, byteorder='little', signed=True))
-    print(logging)
+    print(var.logging)
 
-    if (canid in curCanID):
-        scaled = value/Variables.currentScaling
-        motindex = int(curCanID.index(canid))
-        motCur[motindex] = scaled
-        print(str(motindex) + " : " + str(motCur[motindex]))
-        if logging:
-            currentmeasurements.write(str(timestamp) + ";" + str(canid) + ";" + str(scaled) + " [A]" + "\n")
+    if (canid in var.curCanID):
+        scaled = value/var.currentScaling
+        motindex = int(var.curCanID.index(canid))
+        var.motCur[motindex] = scaled
+        print(str(motindex) + " : " + str(var.motCur[motindex]))
+        if var.logging:
+            var.currentMeasurements.write(str(timestamp) + ";" + str(canid) + ";" + str(scaled) + " [A]" + "\n")
 
-    if (canid in posCanID):
+    if (canid in var.posCanID):
         scaled = value
-        if logging:
-            postionmeasurements.write(str(timestamp) + ";" + str(canid) + ";" + str(scaled) + " [P]" + "\n")
+        if var.logging:
+            var.postionMeasurements.write(str(timestamp) + ";" + str(canid) + ";" + str(scaled) + " [P]" + "\n")
 
 def startPeriodic():
     print("Starting periodic messages")
 
     #RTR - Actual Current
     for i in range(0, 4):
-        curSig[i] = network.send_periodic(897 + i, 8, .1, remote=True)
-        network.subscribe(897 + i, readData)
+        var.curSig[i] = var.network.send_periodic(897 + i, 8, .1, remote=True)
+        var.network.subscribe(897 + i, readData)
 
     #RTR - Actual Position
     for i in range(0, 4):
-        posSig[i] = network.send_periodic(913 + i, 8, .1, remote=True)
-        network.subscribe(913 + i, readData)
+        var.posSig[i] = var.network.send_periodic(913 + i, 8, .1, remote=True)
+        var.network.subscribe(913 + i, readData)
 
 def stopPeriodic():
     print("Stop periodic messages")
-    currentmeasurements.close()
-    postionmeasurements.close()
+    var.currentMeasurements.close()
+    var.postionMeasurements.close()
 
     for i in range(0, 4):
-        posSig[i].stop()
-        curSig[i].stop()
+        var.posSig[i].stop()
+        var.curSig[i].stop()

@@ -1,5 +1,4 @@
-import Variables
-from Variables import *
+import Variables as var
 import ApplicationSetup
 from ApplicationSetup import *
 
@@ -13,24 +12,26 @@ def checkMotorSpeed(speed):
         print("This value is above the speedlimit, please enter a value below: 5200000")
     else:
         print("The motorspeed is now set to:", speed)
-        Variables.globalspeed = speed
+        var.globalspeed = speed
 
 def setSpeed():
     tempId = int(ApplicationSetup.motor.get())
-    motorSpeed[tempId] = int(ApplicationSetup.speed.get())
+    var.motorSpeed[tempId] = int(ApplicationSetup.speed.get())
 
 def startLogging():
+    var.currentMeasurements = open(var.curfilename, "a+")
+    var.postionMeasurements = open(var.posfilename, "a+")
     print("Started logging")
-    currentmeasurements.write("Measurement from:" + now.strftime("%Y-%m-%d %H:%M:%S") + "\n\n")
-    currentmeasurements.write("Timestamp" + ";" + "CANID" + ";" + "Data [A]" + "\n\n")
-    postionmeasurements.write("Measurement from:" + now.strftime("%Y-%m-%d %H:%M:%S") + "\n\n")
-    postionmeasurements.write("Timestamp" + ";" + "CANID" + ";" + "Data [P]" + "\n\n")
-    logging = True
-    print(logging)
+    var.currentMeasurements.write("Measurement from:" + var.now.strftime("%Y-%m-%d %H:%M:%S") + "\n\n")
+    var.currentMeasurements.write("Timestamp" + ";" + "CANID" + ";" + "Data [A]" + "\n\n")
+    var.postionMeasurements.write("Measurement from:" + var.now.strftime("%Y-%m-%d %H:%M:%S") + "\n\n")
+    var.postionMeasurements.write("Timestamp" + ";" + "CANID" + ";" + "Data [P]" + "\n\n")
+    var.logging = True
+    print(var.logging)
 
 def stopLogging():
     print("Stopped logging")
-    currentmeasurements.close()
-    postionmeasurements.close()
-    logging = False
-    print(logging)
+    var.currentMeasurements.close()
+    var.postionMeasurements.close()
+    var.logging = False
+    print(var.logging)

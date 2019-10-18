@@ -2,6 +2,7 @@ import canopen
 import datetime
 
 
+
 network = canopen.Network()
 network.connect(bustype='pcan', channel='PCAN_USBBUS1', bitrate=1000000)
 
@@ -36,11 +37,12 @@ now = datetime.datetime.now()
 
 currentScaling = (pow(2, 13))/40
 
-curfilename = "logs/Current/Current_measurements_" + str(now.strftime("%Y-%m-%d_%H-%M-%S")) + ".txt"
-currentmeasurements = open(curfilename, "a+")
-
 posfilename = "logs/Position/Position_measurements_" + str(now.strftime("%Y-%m-%d_%H-%M-%S")) + ".txt"
-postionmeasurements = open(posfilename, "a+")
+postionMeasurements = None
+curfilename = "logs/Current/Current_measurements_" + str(now.strftime("%Y-%m-%d_%H-%M-%S")) + ".txt"
+currentMeasurements = None
+
+
 
 addressMap = {
     0: 0x301,
