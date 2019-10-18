@@ -125,8 +125,8 @@ motorLabel = Label(SpeedContainer,text="Adjust speed", font=("Arial Bold", 16), 
 motorLabel.pack(side=LEFT, padx=5)
 
 #Speed Entry
-speed = Entry(SpeedContainer, text="Enter speed", font=('Arial', 12))
-speed.pack(side=LEFT, padx=5, pady=5)
+manualSpeed = Entry(SpeedContainer, text="Enter speed", font=('Arial', 12))
+manualSpeed.pack(side=LEFT, padx=5, pady=5)
 
 #Send Speed Button
 speedButton = Button(SpeedContainer, text='Adjust', width=10, height=1, command=setSpeed)

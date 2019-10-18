@@ -14,9 +14,6 @@ def checkMotorSpeed(speed):
         print("The motorspeed is now set to:", speed)
         var.globalspeed = speed
 
-def setSpeed():
-    tempId = int(ApplicationSetup.motor.get())
-    var.motorSpeed[tempId] = int(ApplicationSetup.speed.get())
 
 def startLogging():
     var.currentMeasurements = open(var.curfilename, "a+")

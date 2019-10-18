@@ -10,11 +10,13 @@ logging = False
 
 driveReady = False
 
+maxSpeed = 1500000;
+
 motorSpeed = {
-    1:0,
-    2:0,
-    3:0,
-    4:0
+    0: 0,
+    1: 0,
+    2: 0,
+    3: 0
 }
 
 addressMap = {

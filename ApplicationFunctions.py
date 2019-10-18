@@ -23,4 +23,7 @@ def disable():
     rd.stopPeriodic()
     var.driveReady = False
 
+def setSpeed():
+    var.maxSpeed = int(apps.manualSpeed.get())
+
 
