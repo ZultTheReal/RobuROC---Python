@@ -1,5 +1,4 @@
 import time
-import canopen
 import Variables
 from Variables import *
 

@@ -1,12 +1,36 @@
 import canopen
 import datetime
 
+
+network = canopen.Network()
+network.connect(bustype='pcan', channel='PCAN_USBBUS1', bitrate=1000000)
+
+logging = False
+
+motorSpeed = {
+    1:0,
+    2:0,
+    3:0,
+    4:0
+}
+
+addressMap = {
+    1: 0x301,
+    2: 0x302,
+    3: 0x303,
+    4: 0x304
+}
+
+globalspeed = 1500000
+
 liveSig = [None, None, None, None]
 curSig = [None, None, None, None]
 posSig = [None, None, None, None]
 
 curCanID = [897, 898, 899, 900]
 posCanID = [913, 914, 915, 916]
+
+motCur = [0, 0, 0, 0]
 
 now = datetime.datetime.now()
 
@@ -25,7 +49,3 @@ addressMap = {
     3: 0x304
 }
 
-globalspeed = 1500000
-
-network = canopen.Network()
-network.connect(bustype='pcan', channel='PCAN_USBBUS1', bitrate=1000000)
