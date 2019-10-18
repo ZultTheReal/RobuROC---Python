@@ -8,6 +8,8 @@ network.connect(bustype='pcan', channel='PCAN_USBBUS1', bitrate=1000000)
 
 logging = False
 
+driveReady = False
+
 motorSpeed = {
     1:0,
     2:0,
@@ -39,6 +41,7 @@ currentScaling = (pow(2, 13))/40
 
 posfilename = "logs/Position/Position_measurements_" + str(now.strftime("%Y-%m-%d_%H-%M-%S")) + ".txt"
 postionMeasurements = None
+#curfileDir = "logs/Current/Current_measurements_"
 curfilename = "logs/Current/Current_measurements_" + str(now.strftime("%Y-%m-%d_%H-%M-%S")) + ".txt"
 currentMeasurements = None
 

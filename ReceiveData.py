@@ -2,15 +2,16 @@ import Variables as var
 from Functions import *
 
 def readData(canid, data, timestamp):
+
     scaled = 0
     value = abs(int.from_bytes(data, byteorder='little', signed=True))
-    print(var.logging)
+    # print(var.logging)
 
     if (canid in var.curCanID):
         scaled = value/var.currentScaling
         motindex = int(var.curCanID.index(canid))
         var.motCur[motindex] = scaled
-        print(str(motindex) + " : " + str(var.motCur[motindex]))
+        # print(str(motindex) + " : " + str(var.motCur[motindex]))
         if var.logging:
             var.currentMeasurements.write(str(timestamp) + ";" + str(canid) + ";" + str(scaled) + " [A]" + "\n")
 
@@ -34,8 +35,6 @@ def startPeriodic():
 
 def stopPeriodic():
     print("Stop periodic messages")
-    var.currentMeasurements.close()
-    var.postionMeasurements.close()
 
     for i in range(0, 4):
         var.posSig[i].stop()
