@@ -7,20 +7,24 @@ import Functions as f
 import Variables as var
 
 def close():
-    apps.app.destroy()
     sc.disableVoltage()
     rd.stopPeriodic()
-    f.stopLogging()
+    if var.logging:
+        var.logging = False
+        var.currentMeasurements.close()
+        var.velocityMeasurements.close()
+        var.positionMeasurements.close()
+        var.directionMeasurements.close()
+    var.appOpen = False
+    apps.app.destroy()
 
 def egnition():
     sc.reset()
     sc.enable()
-    rd.startPeriodic()
     var.driveReady = True
 
 def disable():
     sc.disableVoltage()
-    rd.stopPeriodic()
     var.driveReady = False
 
 def setSpeed():

@@ -82,29 +82,30 @@ cur3Label.grid(row=1, column=3, padx=5)
 cur4Label = ttk.Label(DataContainer, text="20 A", font=("Arial", 12), foreground="white", background="black")
 cur4Label.grid(row=1, column=4, padx=5)
 
-### Data Row 2 - Position ###
-label_spacer = ttk.Label(DataContainer, text="Position:", font=("Arial", 14), foreground="white", background="black")
-label_spacer.grid(row=2, column=0, padx=5)
-pos1Label = ttk.Label(DataContainer, text="???", font=("Arial", 12), foreground="white", background="black")
-pos1Label.grid(row=2, column=1, padx=5)
-pos2Label = ttk.Label(DataContainer, text="???", font=("Arial", 12), foreground="white", background="black")
-pos2Label.grid(row=2, column=2, padx=5)
-pos3Label = ttk.Label(DataContainer, text="???", font=("Arial", 12), foreground="white", background="black")
-pos3Label.grid(row=2, column=3, padx=5)
-pos4Label = ttk.Label(DataContainer, text="???", font=("Arial", 12), foreground="white", background="black")
-pos4Label.grid(row=2, column=4, padx=5)
-
-### Data Row 3 - Velocity ###
+### Data Row 2 - Velocity ###
 label_spacer = ttk.Label(DataContainer, text="Velocity:", font=("Arial", 14), foreground="white", background="black")
-label_spacer.grid(row=3, column=0, padx=5)
+label_spacer.grid(row=2, column=0, padx=5)
 vel1Label = ttk.Label(DataContainer, text="2 m/s", font=("Arial", 12), foreground="white", background="black")
-vel1Label.grid(row=3, column=1, padx=5)
+vel1Label.grid(row=2, column=1, padx=5)
 vel2Label = ttk.Label(DataContainer, text="2 m/s", font=("Arial", 12), foreground="white", background="black")
-vel2Label.grid(row=3, column=2, padx=5)
+vel2Label.grid(row=2, column=2, padx=5)
 vel3Label = ttk.Label(DataContainer, text="2 m/s", font=("Arial", 12), foreground="white", background="black")
-vel3Label.grid(row=3, column=3, padx=5)
+vel3Label.grid(row=2, column=3, padx=5)
 vel4Label = ttk.Label(DataContainer, text="2 m/s", font=("Arial", 12), foreground="white", background="black")
-vel4Label.grid(row=3, column=4, padx=5)
+vel4Label.grid(row=2, column=4, padx=5)
+
+### Data Row 3 - Position ###
+label_spacer = ttk.Label(DataContainer, text="Position:", font=("Arial", 14), foreground="white", background="black")
+label_spacer.grid(row=3, column=0, padx=5)
+pos1Label = ttk.Label(DataContainer, text="???", font=("Arial", 12), foreground="white", background="black")
+pos1Label.grid(row=3, column=1, padx=5)
+pos2Label = ttk.Label(DataContainer, text="???", font=("Arial", 12), foreground="white", background="black")
+pos2Label.grid(row=3, column=2, padx=5)
+pos3Label = ttk.Label(DataContainer, text="???", font=("Arial", 12), foreground="white", background="black")
+pos3Label.grid(row=3, column=3, padx=5)
+pos4Label = ttk.Label(DataContainer, text="???", font=("Arial", 12), foreground="white", background="black")
+pos4Label.grid(row=3, column=4, padx=5)
+
 
 ### Data Row 4 - Temperature ###
 label_spacer = ttk.Label(DataContainer, text="Temperature:", font=("Arial", 14), foreground="white", background="black")
