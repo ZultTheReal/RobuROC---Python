@@ -19,9 +19,11 @@ def close():
     apps.app.destroy()
 
 def egnition():
+    rd.stopPeriodic()
     sc.reset()
     sc.enable()
     var.driveReady = True
+    rd.startPeriodic()
 
 def disable():
     sc.disableVoltage()

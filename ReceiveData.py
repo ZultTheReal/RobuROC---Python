@@ -15,29 +15,45 @@ def readData(canid, data, timestamp):
         if var.logging:
             var.currentMeasurements.write(str(timestamp) + ";" + str(canid) + ";" + str(scaled) + " [A]" + "\n")
 
-    if canid in var.velCanID:
-        scaled = value * var.velocityScaling
-        motindex = int(var.velCanID.index(canid))
-        var.motVel[motindex] = scaled
+    if canid in var.posCanID:
+        scaled = value * var.positionScaling
+        motindex = int(var.posCanID.index(canid))
+        var.motPos[motindex] = scaled
+        #print(str(motindex) + " : " + str(var.motPos[motindex]))
         if var.logging:
-            var.velocityMeasurements.write(str(timestamp) + ";" + str(canid) + ";" + str(scaled) + " [m/s]" + "\n")
+            var.motPositionMeasurements.write(str(timestamp) + ";" + str(canid) + ";" + str(scaled) + " [m]" + "\n")
+
+    if canid in var.velCanID:
+        velscaled = value * var.velocityScaling
+        motindex = int(var.velCanID.index(canid))
+        var.motVel[motindex] = velscaled
+        #print(str(motindex) + " : " + str(var.motVel[motindex]))
+        if var.logging:
+            var.velocityMeasurements.write(str(timestamp) + ";" + str(canid) + ";" + str(velscaled) + " [m/s]" + "\n")
 
 def startPeriodic():
     print("Starting periodic messages")
 
     #RTR - Actual Current
     for i in range(0, 4):
-        var.curSig[i] = var.network.send_periodic(897 + i, 8, .1, remote=True)
-        var.network.subscribe(897 + i, readData)
+        var.curSig[i] = var.network.send_periodic(var.curCanID[i], 8, .1, remote=True)
+        var.network.subscribe(var.curCanID[i], readData)
 
     #RTR - Actual Position
     for i in range(0, 4):
-        var.velSig[i] = var.network.send_periodic(913 + i, 8, .1, remote=True)
-        var.network.subscribe(913 + i, readData)
+        var.posSig[i] = var.network.send_periodic(var.posCanID[i], 8, .1, remote=True)
+        var.network.subscribe(var.posCanID[i], readData)
+
+    #RTR - Actual Velocity
+    for i in range(0, 4):
+        var.velSig[i] = var.network.send_periodic(var.velCanID[i], 8, .1, remote=True)
+        var.network.subscribe(var.velCanID[i], readData)
+
 
 def stopPeriodic():
     print("Stop periodic messages")
 
     for i in range(0, 4):
-        var.velSig[i].stop()
+        var.posSig[i].stop()
         var.curSig[i].stop()
+        var.velSig[i].stop()

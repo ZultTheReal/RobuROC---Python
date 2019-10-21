@@ -108,16 +108,16 @@ pos4Label.grid(row=3, column=4, padx=5)
 
 
 ### Data Row 4 - Temperature ###
-label_spacer = ttk.Label(DataContainer, text="Temperature:", font=("Arial", 14), foreground="white", background="black")
-label_spacer.grid(row=4, column=0, padx=5)
-temp1Label = ttk.Label(DataContainer, text="50 deg", font=("Arial", 12), foreground="white", background="black")
-temp1Label.grid(row=4, column=1, padx=5)
-temp2Label = ttk.Label(DataContainer, text="50 deg", font=("Arial", 12), foreground="white", background="black")
-temp2Label.grid(row=4, column=2, padx=5)
-temp3Label = ttk.Label(DataContainer, text="50 deg", font=("Arial", 12), foreground="white", background="black")
-temp3Label.grid(row=4, column=3, padx=5)
-temp4Label = ttk.Label(DataContainer, text="50 deg", font=("Arial", 12), foreground="white", background="black")
-temp4Label.grid(row=4, column=4, padx=5)
+#label_spacer = ttk.Label(DataContainer, text="Temperature:", font=("Arial", 14), foreground="white", background="black")
+#label_spacer.grid(row=4, column=0, padx=5)
+#temp1Label = ttk.Label(DataContainer, text="50 deg", font=("Arial", 12), foreground="white", background="black")
+#temp1Label.grid(row=4, column=1, padx=5)
+#temp2Label = ttk.Label(DataContainer, text="50 deg", font=("Arial", 12), foreground="white", background="black")
+#temp2Label.grid(row=4, column=2, padx=5)
+#temp3Label = ttk.Label(DataContainer, text="50 deg", font=("Arial", 12), foreground="white", background="black")
+#temp3Label.grid(row=4, column=3, padx=5)
+#temp4Label = ttk.Label(DataContainer, text="50 deg", font=("Arial", 12), foreground="white", background="black")
+#temp4Label.grid(row=4, column=4, padx=5)
 
 ######################### Adjust Speed #########################
 

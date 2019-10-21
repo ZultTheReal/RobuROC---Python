@@ -31,28 +31,33 @@ globalspeed = 1500000
 liveSig = [None, None, None, None]
 curSig = [None, None, None, None]
 velSig = [None, None, None, None]
+posSig = [None, None, None, None]
+tempSig = [None, None, None, None]
 
-curCanID = [897, 898, 899, 900]
-velCanID = [913, 914, 915, 916]
+velCanID = [0x371, 0x372, 0x373, 0x374]
+curCanID = [0x381, 0x382, 0x383, 0x384]
+posCanID = [0x391, 0x392, 0x393, 0x394]
 
 motCur = [0, 0, 0, 0]
 motVel = [0, 0, 0, 0]
+motPos = [0, 0, 0, 0]
 
 now = datetime.datetime.now()
 
 currentScaling = (pow(2, 13))/40
-velocityScaling = (1/3688000) * 3.14 * 0.5740
+positionScaling = 1
+velocityScaling = (1/(pow(2, 17)/(20000/65536))) * 1.8
 
-velfilename = "logs/Velocity/Velocity_measurements_" + str(now.strftime("%Y-%m-%d_%H-%M-%S")) + ".txt"
-velocityMeasurements = None
 curfilename = "logs/Current/Current_measurements_" + str(now.strftime("%Y-%m-%d_%H-%M-%S")) + ".txt"
 currentMeasurements = None
+motposfilename = "logs/MotPosition/MotorPosition_measurements_" + str(now.strftime("%Y-%m-%d_%H-%M-%S")) + ".txt"
+motPositionMeasurements = None
+velfilename = "logs/Velocity/Velocity_measurements_" + str(now.strftime("%Y-%m-%d_%H-%M-%S")) + ".txt"
+velocityMeasurements = None
 posfilename = "logs/Position/Position_measurements_" + str(now.strftime("%Y-%m-%d_%H-%M-%S")) + ".txt"
 positionMeasurements = None
 dirfilename = "logs/Direction/Direction_measurements_" + str(now.strftime("%Y-%m-%d_%H-%M-%S")) + ".txt"
 directionMeasurements = None
-
-
 
 
 addressMap = {

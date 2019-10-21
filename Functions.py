@@ -18,6 +18,7 @@ def checkMotorSpeed(speed):
 
 def startLogging():
     var.currentMeasurements = open(var.curfilename, "a+")
+    var.motPositionMeasurements = open(var.motposfilename, "a+")
     var.velocityMeasurements = open(var.velfilename, "a+")
     var.positionMeasurements = open(var.posfilename, "a+")
     var.directionMeasurements = open(var.dirfilename, "a+")
@@ -25,6 +26,8 @@ def startLogging():
     print("Started logging")
     var.currentMeasurements.write("Measurement from:" + var.now.strftime("%Y-%m-%d %H:%M:%S") + "\n\n")
     var.currentMeasurements.write("Timestamp" + ";" + "CANID" + ";" + "Current [A]" + "\n\n")
+    var.motPositionMeasurements.write("Measurement from:" + var.now.strftime("%Y-%m-%d %H:%M:%S") + "\n\n")
+    var.motPositionMeasurements.write("Timestamp" + ";" + "CANID" + ";" + "Motor Position [m]" + "\n\n")
     var.velocityMeasurements.write("Measurement from:" + var.now.strftime("%Y-%m-%d %H:%M:%S") + "\n\n")
     var.velocityMeasurements.write("Timestamp" + ";" + "CANID" + ";" + "Velocity [V]" + "\n\n")
     var.positionMeasurements.write("Measurement from:" + var.now.strftime("%Y-%m-%d %H:%M:%S") + "\n\n")
@@ -37,6 +40,7 @@ def stopLogging():
     print("Stopped logging")
     var.logging = False
     var.currentMeasurements.close()
-    var.velocityMeasurements.close()
+    var.motPositionMeasurements.close()
     var.positionMeasurements.close()
     var.directionMeasurements.close()
+    var.velocityMeasurements.close()
