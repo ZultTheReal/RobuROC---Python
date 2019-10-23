@@ -48,8 +48,6 @@ def getGPSData():
                 obj.longitude_dir = msg.lon_dir
                 obj.heading = msg.course
                 obj.linear_speed = msg.spd_over_grnd
-
-
                 return obj
             except:
                 print("Error in NMEA IDE")
