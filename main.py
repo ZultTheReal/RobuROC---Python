@@ -2,12 +2,12 @@ import time
 import ApplicationSetup as apps
 import Variables as var
 import Functions as f
-from joystick import Joystick
+from xbox360_gamepad import Gamepad, XboxMap
 import GPSDATA as gsd
 import MagnometerData as msd
 import ReceiveData as rd
 
-gamepad = Joystick()
+gamepad = Gamepad()
 
 # Variables for gampepad control
 lastGamepad = 0
@@ -58,20 +58,21 @@ while (var.appOpen):
                     MagnetometerData.accelerometerX) + ";" + str(MagnetometerData.accelerometerY) + ";" + str(
                     MagnetometerData.accelerometerZ) + "\n")
 
-    # Not connected to gamepad, try to reconnect
-    if not gamepad.connected:
-        gamepad.connect()
+    
 
     if (time.time() - lastGamepad > 0.1):
+        # Get all button states
+        pressed = gamepad.buttons()
+        # Get joystick values
+        joystick = gamepad.left_stick()
 
-        # Listen for gamepad events
-        gamepad.run()
+        print( joystick )
 
         lastSpeed = time.time()
 
         # Calculate left and right speeds
-        left = round(gamepad.getForward() + gamepad.getRotate() / 4, 2)
-        right = -round(gamepad.getForward() - gamepad.getRotate() / 4, 2)
+        left = round(joystick[XboxMap.yAxis] + joystick[XboxMap.xAxis] / 4, 2)
+        right = -round(joystick[XboxMap.yAxis] - joystick[XboxMap.xAxis] / 4, 2)
 
         for i in range(4):
 

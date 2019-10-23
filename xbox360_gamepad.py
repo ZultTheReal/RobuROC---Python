@@ -39,7 +39,10 @@ if platform_id == LINUX:
         LT = 2 # Left trigger 
         RX = 3 # Rigth stick x
         RY = 4 # Rigth stick y
-        RT = 5 # Right trigger 
+        RT = 5 # Right trigger
+        
+        xAxis = 0
+        yAxis = 1
 
 elif platform_id == WINDOWS:
     class XboxMap:
@@ -62,14 +65,23 @@ elif platform_id == WINDOWS:
         RX = 4 # Rigth stick x
         RY = 3 # Rigth stick y
         RT = 2 # Right trigger
+        
+        xAxis = 0
+        yAxis = 1
 
 class Gamepad:
     
     joystick = None
     joystick_id = 0
     connectStatus = False
+    
     refresh_time = 0 
     refresh_delay = 0
+    
+    comm_alive = 0 # Last time an button or x-axis was moved
+    
+    reconnect_delay = 1.0 # Delay between trying to reconnect
+    reconnect_time = 0
 
     def __init__(self, dead_zone = 0.15, refresh_rate = 100, id = 0):
         """
@@ -84,32 +96,43 @@ class Gamepad:
         self.refresh_time = 0
         self.refresh_delay = 1/refresh_rate # Calculate the refreshdelay in seconds
         self.dead_zone = dead_zone
+    
         
         # Init the pygame engine, which supports xbox controller inputs
         pygame.init()
         pygame.joystick.init()
         
-        count = pygame.joystick.get_count()
-
-        if( count >= 1 ):
-            # Select the first joystick in the array
-            self.joystick = pygame.joystick.Joystick(self.joystick_id)
-            self.joystick.init()
-        
-        self.refresh()
+        # As soon as refresh() is called, the class tries to connect to a gamepad
 
     def refresh(self):
+        
+        self.connect()
+        
         if self.refresh_time < time.time():
             
             # Define next refresh time
-            self.refresh_time = time.time() + self.refresh_delay
+            self.refresh_time = time.time() + self.refresh_delay                
+
+            # Read pygame events (needed to read joystick), return the events for debugging purposes
+            for event in pygame.event.get():
+                self.comm_alive = time.time()
+         
+
+    def connect(self):
+
+        # Only try to reconnect, if there has elapsed the appropiated time since last attempt
+        if time.time() - self.reconnect_time > self.reconnect_delay:
+            
+            # print( "... Checking joystick")
+            self.reconnect_time = time.time()
             
             # Reinitiaze the joystick instance in the pygame object to get current joystick count - takes zero time
             pygame.joystick.quit()
             pygame.joystick.init()
-            
+
+            # Count number of connections
             count = pygame.joystick.get_count()
- 
+     
             if( count >= 1 ):
                 self.joystick = pygame.joystick.Joystick(self.joystick_id)
                 self.joystick.init()
@@ -122,9 +145,6 @@ class Gamepad:
                     self.connectStatus = False
                     print('Joystick was disconnected')
                 
-                
-            # Read pygame events (needed to read joystick), return the events for debugging purposes
-            return pygame.event.get()
 
     def connected(self):
         
@@ -201,7 +221,7 @@ class Gamepad:
             lx = self.dead_zone_adjustment( self.joystick.get_axis( XboxMap.LX ) )
             ly = self.dead_zone_adjustment( -self.joystick.get_axis( XboxMap.LY ) )
         
-        return {'x':round(lx,4), 'y':round(ly,4)}
+        return [round(lx,4), round(ly,4)]
 
     def right_stick(self):
         """
@@ -224,5 +244,5 @@ class Gamepad:
             rx = self.dead_zone_adjustment( self.joystick.get_axis( XboxMap.RX ) )
             ry = self.dead_zone_adjustment( -self.joystick.get_axis( XboxMap.RY ) )
 
-        return {'x':round(rx,4), 'y':round(ry,4)}
+        return [round(rx,4), round(ry,4)]
     
