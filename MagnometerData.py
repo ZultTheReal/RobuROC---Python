@@ -39,7 +39,7 @@ def GetMagnetometerData():
         return 0
 
 ser = serial.Serial(
-    port='COM4',\
+    port='COM16',\
     baudrate=19200,\
     parity=serial.PARITY_NONE,\
     stopbits=serial.STOPBITS_ONE,\

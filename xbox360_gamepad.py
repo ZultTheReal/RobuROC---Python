@@ -39,7 +39,10 @@ if platform_id == LINUX:
         LT = 2 # Left trigger 
         RX = 3 # Rigth stick x
         RY = 4 # Rigth stick y
-        RT = 5 # Right trigger 
+        RT = 5 # Right trigger
+        
+        xAxis = 0
+        yAxis = 1
 
 elif platform_id == WINDOWS:
     class XboxMap:
@@ -62,6 +65,9 @@ elif platform_id == WINDOWS:
         RX = 4 # Rigth stick x
         RY = 3 # Rigth stick y
         RT = 2 # Right trigger
+        
+        xAxis = 0
+        yAxis = 1
 
 class Gamepad:
     
