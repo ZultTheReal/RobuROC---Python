@@ -11,10 +11,11 @@ def close():
     rd.stopPeriodic()
     if var.logging:
         var.logging = False
-        var.currentMeasurements.close()
-        var.velocityMeasurements.close()
-        var.positionMeasurements.close()
-        var.directionMeasurements.close()
+        #var.currentMeasurements.close()
+        #var.velocityMeasurements.close()
+        #var.positionMeasurements.close()
+        #var.directionMeasurements.close()
+        var.combinedMeasurements.close()
     var.appOpen = False
     apps.app.destroy()
 

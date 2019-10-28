@@ -9,6 +9,8 @@ import ReceiveData as rd
 
 gamepad = Gamepad()
 
+lastlog = 0
+
 # Variables for gampepad control
 lastGamepad = 0
 left = 0
@@ -42,33 +44,29 @@ while (var.appOpen):
     MagnetometerData = msd.GetMagnetometerData()
 
     if GPSData != 0:
-        # print(GPSData)
-        if var.logging:
-            var.positionMeasurements.write(
-                str(GPSData.sat_count) + ";" + str(GPSData.timestamp) + ";" + str(GPSData.latitude) + ";" + str(
-                    GPSData.latitude_dir) + ";" + str(GPSData.longitude) + ";" + str(GPSData.longitude_dir) + ";" + str(
-                    GPSData.heading) + ";" + str(GPSData.linear_speed) + "\n")
+        print(GPSData)
+        var.GPSLogging = GPSData
 
     if MagnetometerData != 0:
-        # print(MagnetometerData)
-        if var.logging:
-            var.directionMeasurements.write(
-                str(MagnetometerData.heading) + ";" + str(MagnetometerData.pitch) + ";" + str(
-                    MagnetometerData.roll) + ";" + str(MagnetometerData.wat) + ";" + str(
-                    MagnetometerData.accelerometerX) + ";" + str(MagnetometerData.accelerometerY) + ";" + str(
-                    MagnetometerData.accelerometerZ) + "\n")
+        var.MagnetometerLogging = MagnetometerData
+
+    if var.logging:
+
+        if time.time() - var.lastlog > 1:
+            var.lastlog = time.time()
+            f.logging()
 
     
 
-    if (time.time() - lastGamepad > 0.1):
+    if time.time() - lastGamepad > .1:
         # Get all button states
         pressed = gamepad.buttons()
         # Get joystick values
         joystick = gamepad.left_stick()
 
-        print( joystick )
+        #print( joystick )
 
-        lastSpeed = time.time()
+        lastGamepad = time.time()
 
         # Calculate left and right speeds
         left = round(joystick[XboxMap.yAxis] + joystick[XboxMap.xAxis] / 4, 2)

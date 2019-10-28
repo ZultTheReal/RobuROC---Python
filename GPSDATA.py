@@ -2,6 +2,8 @@ import serial
 import pynmea2
 import time
 
+gpsfail = 1
+
 class GPS:
     def __init__(self):
         self.sat_count = 0          # Number of connected satellites
@@ -13,12 +15,13 @@ class GPS:
         self.heading = 0            # Which direction the vehicle is heading
         self.linear_speed = 0
         self.rate_of_climb = 0      # Vertical speed (uphill)
+        self.msg = 1
     def __str__(self):
         return f'Satellite Count: {self.sat_count}   Timestamp: {self.timestamp}  Latitude: {self.latitude}   Latitude Direction: {self.latitude_dir}   Longitude: {self.longitude}   Longitude Direction: {self.longitude_dir}   Heading: {self.heading}   Linear_speed: {self.linear_speed}'
 
 
 ser = serial.Serial(
-    port='COM7',
+    port='COM8',
     baudrate=115200,
     parity=serial.PARITY_NONE,
     stopbits=serial.STOPBITS_ONE,
@@ -40,6 +43,7 @@ def getGPSData():
         if stringlen == 19:
             try:
                 msg = pynmea2.parse(string)
+                obj.msg = 1
                 obj.sat_count = msg.sat_count
                 obj.timestamp = msg.timestamp
                 obj.latitude = msg.lat
@@ -50,8 +54,8 @@ def getGPSData():
                 obj.linear_speed = msg.spd_over_grnd
                 return obj
             except:
-                print("Error in NMEA IDE")
-                msg = "0"
+                #print("Error in NMEA IDE")
+                gpsfail = 0
                 return 0
         else:
             return 0

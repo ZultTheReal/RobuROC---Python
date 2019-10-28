@@ -1,5 +1,12 @@
 import canopen
 import datetime
+import MagnometerData as msd
+import GPSDATA as gpd
+import time
+
+lastlog = 0
+GPSLogging = 0
+MagnetometerLogging = 0
 
 appOpen = True
 
@@ -58,7 +65,8 @@ posfilename = "logs/Position/Position_measurements_" + str(now.strftime("%Y-%m-%
 positionMeasurements = None
 dirfilename = "logs/Direction/Direction_measurements_" + str(now.strftime("%Y-%m-%d_%H-%M-%S")) + ".txt"
 directionMeasurements = None
-
+comfilename = "logs/Combined/Combined_measurements_" + str(now.strftime("%Y-%m-%d_%H-%M-%S")) + ".csv"
+combinedMeasurements = None
 
 addressMap = {
     0: 0x301,

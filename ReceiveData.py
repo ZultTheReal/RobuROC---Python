@@ -12,24 +12,24 @@ def readData(canid, data, timestamp):
         motindex = int(var.curCanID.index(canid))
         var.motCur[motindex] = scaled
         #print(str(motindex) + " : " + str(var.motCur[motindex]))
-        if var.logging:
-            var.currentMeasurements.write(str(timestamp) + ";" + str(canid) + ";" + str(scaled) + " [A]" + "\n")
+        #if var.logging:
+        #    var.currentMeasurements.write(str(timestamp) + ";" + str(canid) + ";" + str(scaled) + " [A]" + "\n")
 
     if canid in var.posCanID:
         scaled = value * var.positionScaling
         motindex = int(var.posCanID.index(canid))
         var.motPos[motindex] = scaled
         #print(str(motindex) + " : " + str(var.motPos[motindex]))
-        if var.logging:
-            var.motPositionMeasurements.write(str(timestamp) + ";" + str(canid) + ";" + str(scaled) + " [m]" + "\n")
+        #if var.logging:
+        #    var.motPositionMeasurements.write(str(timestamp) + ";" + str(canid) + ";" + str(scaled) + " [m]" + "\n")
 
     if canid in var.velCanID:
         velscaled = value * var.velocityScaling
         motindex = int(var.velCanID.index(canid))
         var.motVel[motindex] = velscaled
         #print(str(motindex) + " : " + str(var.motVel[motindex]))
-        if var.logging:
-            var.velocityMeasurements.write(str(timestamp) + ";" + str(canid) + ";" + str(velscaled) + " [m/s]" + "\n")
+        #if var.logging:
+        #    var.velocityMeasurements.write(str(timestamp) + ";" + str(canid) + ";" + str(velscaled) + " [m/s]" + "\n")
 
 def startPeriodic():
     print("Starting periodic messages")
