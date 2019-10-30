@@ -21,7 +21,7 @@ class GPS:
 
 
 ser = serial.Serial(
-    port='COM8',
+    port='COM5',
     baudrate=115200,
     parity=serial.PARITY_NONE,
     stopbits=serial.STOPBITS_ONE,
@@ -52,6 +52,8 @@ def getGPSData():
                 obj.longitude_dir = msg.lon_dir
                 obj.heading = msg.course
                 obj.linear_speed = msg.spd_over_grnd
+                if obj.linear_speed is None:
+                    obj.linear_speed = "0"
                 return obj
             except:
                 #print("Error in NMEA IDE")

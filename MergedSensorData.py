@@ -27,8 +27,20 @@ class Magnetometer:
     def __str__(self):
         return f'Heading: {self.heading}   Pitch: {self.pitch}   Roll: {self.roll}   wat: {self.wat}   Acceleration X: {self.accelerometerX}   acceleration Y: {self.accelerometerY}   Acceleration Z: {self.accelerometerZ} '
 
+class IMU:
+    def __init__(self):
+        self.gx = 0          # Number of connected satellites
+        self.gy = 0          # timestamp
+        self.gz = 0           # lateral coordinate
+        self.ax = 0       # lateral direction (North,South)
+        self.ay = 0          # Longitudinal coordinate
+        self.az = 0      # Longitudinal direction (West,East)
+    def __str__(self):
+        return f'gx: {self.gx}   gy: {self.gy}  gz: {self.gz}   ax: {self.ax}   ay: {self.ay}   az: {self.az}'
+
+
 GPSSerial = serial.Serial(
-    port='COM3',
+    port='COM6',
     baudrate=115200,
     parity=serial.PARITY_NONE,
     stopbits=serial.STOPBITS_ONE,
@@ -36,13 +48,22 @@ GPSSerial = serial.Serial(
     timeout=0)
 
 MagnetometerSerial = serial.Serial(
-    port='COM4',
+    port='COM5',
     baudrate=19200,
     parity=serial.PARITY_NONE,
     stopbits=serial.STOPBITS_ONE,
     bytesize=serial.EIGHTBITS,
     timeout=0)
 
+ser = serial.Serial(
+    port='COM8',
+    baudrate=115200,
+    parity=serial.PARITY_NONE,
+    stopbits=serial.STOPBITS_ONE,
+    bytesize=serial.EIGHTBITS,
+    timeout=0.5)
+
+print("IMU connected to: " + ser.portstr)
 print("GPS connected to: " + GPSSerial.portstr)
 print("Magnetometer connected to: " + MagnetometerSerial.portstr)
 
@@ -69,7 +90,7 @@ def getGPSData():
                 obj.linear_speed = msg.spd_over_grnd
                 return obj
             except:
-                print("Error in NMEA IDE")
+                #print("Error in NMEA IDE")
                 return 0
         else:
             return 0
@@ -82,7 +103,7 @@ def GetMagnetometerData():
     if num != 0:
         try:
             line = MagnetometerSerial.readline()
-            line = str(line)
+            #line = str(line)
             temp = line.split()
             magnetoData = temp[1].split(",")
             obj.heading = magnetoData[0]
@@ -95,19 +116,45 @@ def GetMagnetometerData():
             return obj
 
         except:
-            print("Error in Magnometer")
+            #print("Error in Magnometer")
             return 0
 
     else:
         return 0
 
+def getIMUData():
+    obj = IMU()
+    num = ser.in_waiting
+    if num != 0:
+        data = ser.readline()
+        try:
+            string = str(data,"utf-8")
+            packlist = string.split(',')
+            strlen = len(packlist)
+            if strlen == 6:
+                imuData = dict(item.split('=') for item in packlist)
+                obj.gx = imuData["gx"]
+                obj.gy = imuData["gy"]
+                obj.gz = imuData["gz"]
+                obj.ax = imuData["ax"]
+                obj.ay = imuData["ay"]
+                obj.az = imuData["az"]
+                return obj
+        except:
+            return 0
+        else:
+            return 0
+    return False        # else False
+
 while 1:
     GPSData = getGPSData()
     MagnetometerData = GetMagnetometerData()
+    imuData = getIMUData()
     if GPSData != 0:
-        print(GPSData)
-        print("\n")
+        #print(GPSData)
+        #print("\n")
     if MagnetometerData != 0:
-        print(MagnetometerData)
-        print("\n")
-
+        #print(MagnetometerData)
+        #print("\n")
+    if imuData != 0:
+        #

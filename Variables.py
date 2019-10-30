@@ -2,11 +2,13 @@ import canopen
 import datetime
 import MagnometerData as msd
 import GPSDATA as gpd
+import IMU as imu
 import time
 
 lastlog = 0
 GPSLogging = 0
 MagnetometerLogging = 0
+ImuLogging = 0
 
 appOpen = True
 

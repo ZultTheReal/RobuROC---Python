@@ -6,6 +6,7 @@ from xbox360_gamepad import Gamepad, XboxMap
 import GPSDATA as gsd
 import MagnometerData as msd
 import ReceiveData as rd
+import IMU as imu
 
 gamepad = Gamepad()
 
@@ -41,22 +42,27 @@ while (var.appOpen):
     apps.app.update()
 
     GPSData = gsd.getGPSData()
+
     MagnetometerData = msd.GetMagnetometerData()
 
+    IMUData = imu.getIMUData()
+
     if GPSData != 0:
-        print(GPSData)
+        #print(GPSData)
         var.GPSLogging = GPSData
 
     if MagnetometerData != 0:
         var.MagnetometerLogging = MagnetometerData
 
+    if IMUData != 0 and IMUData is not None:
+        #print(IMUData.gx)
+        var.IMULogging = IMUData
+
     if var.logging:
 
         if time.time() - var.lastlog > 1:
             var.lastlog = time.time()
-            f.logging()
-
-    
+            f.logging(IMUData)
 
     if time.time() - lastGamepad > .1:
         # Get all button states
@@ -64,7 +70,7 @@ while (var.appOpen):
         # Get joystick values
         joystick = gamepad.left_stick()
 
-        #print( joystick )
+        # print( joystick )
 
         lastGamepad = time.time()
 
