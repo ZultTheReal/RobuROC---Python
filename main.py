@@ -3,12 +3,19 @@ import ApplicationSetup as apps
 import Variables as var
 import Functions as f
 from xbox360_gamepad import Gamepad, XboxMap
-import GPSDATA as gsd
+from GPSDATA import GPSclass
 import MagnometerData as msd
 import ReceiveData as rd
 import IMU as imu
 
+try:
+    GPS = GPSclass()
+except:
+    print("What to do")
+
+
 gamepad = Gamepad()
+
 
 lastlog = 0
 

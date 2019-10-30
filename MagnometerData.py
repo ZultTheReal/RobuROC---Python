@@ -43,15 +43,18 @@ def GetMagnetometerData():
     else:
         return 0
 
-ser = serial.Serial(
-    port='COM6',\
-    baudrate=19200,\
-    parity=serial.PARITY_NONE,\
-    stopbits=serial.STOPBITS_ONE,\
-    bytesize=serial.EIGHTBITS,\
-        timeout=0)
+try:
+    ser = serial.Serial(
+        port='COM6',\
+        baudrate=19200,\
+        parity=serial.PARITY_NONE,\
+        stopbits=serial.STOPBITS_ONE,\
+        bytesize=serial.EIGHTBITS,\
+            timeout=0)
+    print("connected to: " + ser.portstr)
+except:
+    print("Magnometer cannot connect")
 
-print("connected to: " + ser.portstr)
 
 
 

@@ -12,15 +12,17 @@ class IMU:
         return f'gx: {self.gx}   gy: {self.gy}  gz: {self.gz}   ax: {self.ax}   ay: {self.ay}   az: {self.az}'
 
 
-ser = serial.Serial(
-    port='COM8',
-    baudrate=115200,
-    parity=serial.PARITY_NONE,
-    stopbits=serial.STOPBITS_ONE,
-    bytesize=serial.EIGHTBITS,
-    timeout=0.5)
-
-print("IMU connected to: " + ser.portstr)
+try:
+    ser = serial.Serial(
+        port='COM8',
+        baudrate=115200,
+        parity=serial.PARITY_NONE,
+        stopbits=serial.STOPBITS_ONE,
+        bytesize=serial.EIGHTBITS,
+        timeout=0.5)
+    print("IMU connected to: " + ser.portstr)
+except:
+    print("IMU was not able to connect")
 
 def getIMUData():
     obj = IMU()

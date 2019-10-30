@@ -12,8 +12,12 @@ ImuLogging = 0
 
 appOpen = True
 
-network = canopen.Network()
-network.connect(bustype='pcan', channel='PCAN_USBBUS1', bitrate=1000000)
+try:
+    network = canopen.Network()
+    network.connect(bustype='pcan', channel='PCAN_USBBUS1', bitrate=1000000)
+
+except:
+    print("PCAN IS not connected")
 
 logging = False
 
