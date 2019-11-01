@@ -15,12 +15,16 @@ COBID_TAR_CURRENT = [0x521, 0x522, 0x523, 0x524]
 
 # Constants for transforming int-values read from CAN to actual values
 SCALE_CURRENT = pow(2, 13)/40 # to Amps
-SCALE_VELOCITY = 57138 # To km/h
+SCALE_VELOCITY =  ((pow(2,17)/(2*20000)*pow(2,19))/1000)*32# To RPM
 
 
 COBID_SDO = [0x601, 0x602, 0x603, 0x604]
 COBID_HEARTBEAT = [0x701, 0x702, 0x703, 0x704]
+
 # Object indexes for configuration
 INDEX_HEARTBEAT = 0x1016
 SUBINDEX_HEARTBEAT = 1
 
+
+INDEX_DECELERATION_LIMIT = 0x2062
+SUBINDEX_DECELERATION_LIMIT = 4
