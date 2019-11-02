@@ -4,7 +4,7 @@ from tkinter import ttk
 appTitle = 'RoboRUC Control Panel'
 rowTitles = ['Motor','Current [A]','Velocity [m/s]']
 
-class Application():
+class Application:
     
     # Defining the labels
     motorLabel = [None for x in range(4)]
@@ -15,6 +15,9 @@ class Application():
     def __init__(self):
         
         self.root = tk.Tk()
+        
+    def setup(self):
+        
         self.root.geometry('800x480')
         self.root.title(appTitle)
         self.root.configure(background='black')

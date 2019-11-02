@@ -2,7 +2,7 @@ import canopen
 import time
 import constants as const
 
-class MotorDrives:
+class MotorControl:
     
     setpointSpeed = [0, 0, 0, 0]
     network = None
@@ -258,24 +258,3 @@ class MotorDrives:
         
     def start(self):
         self.enableOperation()
-
-    
-mc = MotorDrives()
-mc.setup()
-
-time.sleep(0.1)
-
-# Read Ki
-#mc.sdoRead( const.COBID_SDO[0], 0x2032, 0x08 )
-
-# Read Ks
-#mc.sdoRead( const.COBID_SDO[0], 0x20D8, 0x24 )
-
-# Read Resolver resolution
-#mc.sdoRead( const.COBID_SDO[0], 0x2032, 0x06 )
-
-for i in range(4):
-    mc.setSpeed(i, 2000000)
-
-while( 1 ):
-    print(mc.actualVel)
