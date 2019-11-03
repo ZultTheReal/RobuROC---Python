@@ -4,7 +4,7 @@ from tkinter import ttk
 appTitle = 'RoboRUC Control Panel'
 rowTitles = ['Motor','Current [A]','Velocity [m/s]']
 
-class Application:
+class Interface:
     
     # Defining the labels
     motorLabel = [None for x in range(4)]
@@ -100,12 +100,3 @@ class Application:
                     label[i]['text'] = str( round( val, 2) )
             else:
                 label[index]['text'] = str( round( value, 2) )
-        
-
-
-app = Application();
-
-while(1):
-    
-    app.setLabelValue( 'current', [23, 12, 245, 11] )
-    app.update()

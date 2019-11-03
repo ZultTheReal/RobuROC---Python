@@ -1,9 +1,17 @@
-#from motorControl import MotorControl
-#from system import application
-from lib.motorControl import MotorControl
-from lib.dataLogger import Logging
+
+# Import the classes for interfacing with the RobuROC
+import system as car
 
 import random
+
+
+# Application object
+gui = car.Interface()
+
+# Logging object
+log = car.Logging('measurements')
+
+
 
 class Shit:
     
@@ -20,9 +28,7 @@ class Shit:
 
 shit = Shit()
 
-# Create application
-#app = Application()
-log = Logging('measurements')
+
 
 number1 = 0
 

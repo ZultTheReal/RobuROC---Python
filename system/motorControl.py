@@ -1,6 +1,6 @@
 import canopen
 import time
-import constants as const
+from .constants import *
 
 class MotorControl:
     
