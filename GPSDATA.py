@@ -123,13 +123,13 @@ class GPSclass:
 
 
 # Test code 
-GPS = GPSclass()
-GPS.connect('COM10')
+# GPS = GPSclass()
+# GPS.connect('COM10')
 
-for i in range(0,10):
-    GPS.getData()
-    print(GPS)
-    time.sleep(0.1)
+# for i in range(0,10):
+#     GPS.getData()
+#     print(GPS)
+#     time.sleep(0.1)
 
 
 
