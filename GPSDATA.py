@@ -6,6 +6,7 @@ import time
 class GPSclass:
 
     ser = serial.Serial()
+    logPar = [0.0,0.0,0.0,0.0] #Heading, latitude, lontitude, linear_speed
 
     def __init__(self):
         self.clear()
@@ -108,6 +109,7 @@ class GPSclass:
             self.heading = self.floatOrZero(temp[11])
             self.linear_speed = self.floatOrZero(temp[12])
             self.rate_of_climb = self.floatOrZero(temp[13])
+            self.logPar = [self.heading, self.latitude, self.longitude, self.linear_speed] #Heading, latitude, lontitude, linear_speed
             return 0
         else:
             #print('Error: Checksums doesn\'t match')
