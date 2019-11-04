@@ -1,4 +1,5 @@
 import serial
+import time
 
 class IMU:
     def __init__(self):
@@ -14,7 +15,7 @@ class IMU:
 
 try:
     ser = serial.Serial(
-        port='COM8',
+        port='COM11',
         baudrate=115200,
         parity=serial.PARITY_NONE,
         stopbits=serial.STOPBITS_ONE,
@@ -26,9 +27,9 @@ except:
 
 def getIMUData():
     obj = IMU()
-    num = ser.in_waiting
-    if num != 0:
-        data = ser.readline()
+    if ser.in_waiting != 0:
+        while ser.in_waiting !=0:
+            data = ser.readline()
         try:
             string = str(data,"utf-8")
             packlist = string.split(',')
@@ -43,7 +44,16 @@ def getIMUData():
                 obj.az = float(imuData["az"])
                 return obj
         except:
-            return 0
-        else:
-            return 0
+            return -1
+    else:
+        return -1
 
+
+
+#A = IMU()
+
+# while (1):
+#     A = getIMUData()
+#     print(A)
+#     time.sleep(50/1000)
+    
