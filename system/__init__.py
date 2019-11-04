@@ -1,8 +1,12 @@
+# Import shared objects 
+from .shared import *
 from .constants import *
 
 from .interface import Interface
-# from .motorControl import MotorControl
-from .dataLogger import Logging
+from .gps import GPS
 
-# Motor controller object as this is used between the other objects aswell
-# motors = MotorControl()
+# Application object
+gui = Interface()
+
+# GPS object
+gps = GPS()

@@ -40,13 +40,14 @@ class MotorControl:
                 
             except Exception as error:
                 self.canReady = False
-                print( error )
         
     def setup(self):
         
         if self.canReady:
             # First reset all drives
             self.resetDrive()
+            
+            time.sleep(0.5)
             
             self.startHeartbeat()
             self.startPeriodic()
@@ -69,27 +70,27 @@ class MotorControl:
         value = int.from_bytes(data, byteorder='little', signed=True)
 
 
-        if canid in const.COBID_ACT_CURRENT:
-            scaled = round( value, 4)
-            index = int(const.COBID_ACT_CURRENT.index(canid))
+        if canid in COBID_ACT_CURRENT:
+            scaled = round( value/SCALE_CURRENT, 2)
+            index = int(COBID_ACT_CURRENT.index(canid))
             self.actualCur[index] = scaled
 
-        if canid in const.COBID_ACT_VELOCITY:
-            scaled = round(value/const.SCALE_VELOCITY, 4)
-            index = int(const.COBID_ACT_VELOCITY.index(canid))
+        if canid in COBID_ACT_VELOCITY:
+            scaled = round(value/SCALE_VELOCITY*SCALE_RPM_TO_MPS, 2)
+            index = int(COBID_ACT_VELOCITY.index(canid))
             self.actualVel[index] = scaled
             
  
     def startPeriodic(self):
         #RTR - Actual Current
         for i in range(4):
-            self.curPeriodic[i] = self.network.send_periodic( const.COBID_ACT_CURRENT[i], 8, .1, remote=True)
-            self.network.subscribe( const.COBID_ACT_CURRENT[i], self.readPeriodic)
+            self.curPeriodic[i] = self.network.send_periodic( COBID_ACT_CURRENT[i], 8, .1, remote=True)
+            self.network.subscribe( COBID_ACT_CURRENT[i], self.readPeriodic)
 
         #RTR - Actual Velocity
         for i in range(0, 4):
-            self.velPeriodic[i] = self.network.send_periodic( const.COBID_ACT_VELOCITY[i], 8, .1, remote=True)
-            self.network.subscribe( const.COBID_ACT_VELOCITY[i], self.readPeriodic)
+            self.velPeriodic[i] = self.network.send_periodic( COBID_ACT_VELOCITY[i], 8, .1, remote=True)
+            self.network.subscribe( COBID_ACT_VELOCITY[i], self.readPeriodic)
             
  
     def isReady(self):
@@ -104,16 +105,19 @@ class MotorControl:
             
  
     def setSpeed(self, index = 0, speed = 0):
+
         if isinstance(speed, int):
             # Convert speed to bytearray for sending over CAN
             data = (speed).to_bytes(4, byteorder="little", signed=True)
             
-            self.sendCanPacket( const.COBID_TAR_VELOCITY[index], list(data) )
+            self.sendCanPacket( COBID_TAR_VELOCITY[index], list(data) )
+        else:
+            raise TypeError('Unvalid speed type')
     
     def setRPM( self, index = 0, rpm = 0 ):
         
         # Convert speed (m/s) to motor speed value
-        speed = rpm / const.SCALE_VELOCITY
+        speed = rpm / SCALE_VELOCITY
         self.setSpeed( index, speed )
     
     # --- Communication state machine functions ---
@@ -121,23 +125,19 @@ class MotorControl:
     def enableComm(self):
         # Enable all drives with global NMT command
         # Reset command: 0x01
-        for i in range(4):
-            self.sendCanPacket(0, [0x1, i])
+        self.sendCanPacket(0, [0x1, 0])
     
     def stopComm(self):
         # Transitions the drives into quick stop state with a NMT message
         # Stop command: 0x02
-        for i in range(4):
-           self.sendCanPacket(0, [0x02, i])
+        self.sendCanPacket(0, [0x02, 0])
     
     def resetDrive(self):
-        # Reset all drives with global NMT command
+        # Reset all drives with one global NMT command
         # Reset command: 0x81
-        for i in range(4):
-            self.sendCanPacket(0, [0x81, i])
-            time.sleep(.2) # Sleep a little to not stress the network??? 
+        self.sendCanPacket(0, [0x81, 0])
 
-    
+
     # --- Operational state machine functions ---
     
     def disableVoltage(self):
@@ -146,34 +146,34 @@ class MotorControl:
         # Disable Voltage command: 0x00
         data = [0x0, 0]
         for i in range(4):
-            self.sendCanPacket(const.COBID_CONTROL[i], data)
+            self.sendCanPacket(COBID_CONTROL[i], data)
 
     def quickStop(self):
         # Transitions the drives into quick stop state with a PDO message
         # Quick Stop command: 0x02
         data = [0x02, 0]
         for i in range(4):
-            self.sendCanPacket(const.COBID_CONTROL[i], data)
+            self.sendCanPacket(COBID_CONTROL[i], data)
 
     def shutDown(self):
         # Shutdown the drives with a PDO message
         # Shutdown command: 0x06
         data = [0x06, 0]
         for i in range(4):
-            self.sendCanPacket(const.COBID_CONTROL[i], data)
+            self.sendCanPacket(COBID_CONTROL[i], data)
             
     def enableOperation(self):
         # Enable operation
         data = [0x0F, 0]
         for i in range(4):
-            self.sendCanPacket(const.COBID_CONTROL[i], data)
+            self.sendCanPacket(COBID_CONTROL[i], data)
             
     def switchOn(self):
         # Turn on the drives with PDO message
         # Switch on command: 0x07
         data = [0x07, 0]
         for i in range(4):
-            self.sendCanPacket(const.COBID_CONTROL[i], data)
+            self.sendCanPacket(COBID_CONTROL[i], data)
       
       
     def sdoWrite(self, COBID = 0, data = None, index = 0, subindex = 0 ):
@@ -227,7 +227,7 @@ class MotorControl:
         data = list(valueBytes)
     
         for i in range(4):
-            self.sdoWrite( const.COBID_SDO[i], data, const.INDEX_DECELERATION_LIMIT, const.SUBINDEX_DECELERATION_LIMIT )
+            self.sdoWrite( COBID_SDO[i], data, INDEX_DECELERATION_LIMIT, SUBINDEX_DECELERATION_LIMIT )
             
 
     def startHeartbeat(self):
@@ -240,16 +240,16 @@ class MotorControl:
         
         
         data = list(timeInBytes)
-        data.append(const.COBID_HOST) # Configure all motor driver nodes to listen for heartbeat from HOST
+        data.append(COBID_HOST) # Configure all motor driver nodes to listen for heartbeat from HOST
     
         for i in range(4):
-            self.sdoWrite( const.COBID_SDO[i], data, const.INDEX_HEARTBEAT, const.SUBINDEX_HEARTBEAT )
+            self.sdoWrite( COBID_SDO[i], data, INDEX_HEARTBEAT, SUBINDEX_HEARTBEAT )
             
         time.sleep(0.1)
         
         # Begin heartbeat
         
-        self.network.send_periodic( 0x700 + const.COBID_HOST, [0], 0.1, remote=False)
+        self.network.send_periodic( 0x700 + COBID_HOST, [0], 0.1, remote=False)
     
     # print('[{}]'.format(', '.join(hex(x) for x in data)))
 
@@ -258,3 +258,13 @@ class MotorControl:
         
     def start(self):
         self.enableOperation()
+        
+        
+# Read Ki
+#mc.sdoRead( const.COBID_SDO[0], 0x2032, 0x08 )
+
+# Read Ks
+#mc.sdoRead( const.COBID_SDO[0], 0x20D8, 0x24 )
+
+# Read Resolver resolution
+#mc.sdoRead( const.COBID_SDO[0], 0x2032, 0x06 )

@@ -1,67 +1,59 @@
 
 # Import the classes for interfacing with the RobuROC
 import system as car
+import control as con
+import time
 
-import random
+# Tell the Logging object where from to get the log data
+car.log.addMeasurements(
+    car.motors.actualCur,
+    ['Current 1','Current 2','Current 3','Current 4']
+)
 
+car.log.addMeasurements(
+    car.motors.actualVel,
+    ['Velocity 1','Velocity 2','Velocity 3','Velocity 4']
+)
 
-# Application object
-gui = car.Interface()
-
-# Logging object
-log = car.Logging('measurements')
-
-
-
-class Shit:
-    
-    other = [0, 0, 0]
-    data = [0, 0]
-    
-    def doDis(self):
-        self.data[0] = random.randint(1,5)
-        self.data[1] = random.randint(1,10)
-        
-        self.other[0] = random.randint(1,200)
-        self.other[1] = random.randint(1,100)
-        self.other[2] = random.randint(1,400)
-
-shit = Shit()
+#car.log.addMeasurements(
+#    [gps.X, gps],
+#    ['Heading','Latitude','Longitude','LinearSpeed']
+#)
 
 
 
-number1 = 0
-
-
-
-log.addMeasurements( shit.data, ['X1','X2'])
-log.addMeasurements( shit.other, [ 'X3','X4','X5'] )
-
-log.begin()
-
-
-#motors = MotorControl()
-#motors.setup()
-
-
-# Read Ki
-#mc.sdoRead( const.COBID_SDO[0], 0x2032, 0x08 )
-
-# Read Ks
-#mc.sdoRead( const.COBID_SDO[0], 0x20D8, 0x24 )
-
-# Read Resolver resolution
-#mc.sdoRead( const.COBID_SDO[0], 0x2032, 0x06 )
-
-#for i in range(4):
-    #motors.setSpeed(i, 2000000)
+lastControl = 0
 
 while( 1 ):
     
-    shit.doDis()
+    car.gui.update()
     
-    log.update(0.1, 100)
     
-    pass
-    #app.update()
-    #print(motors.actualVel)
+    if car.var.loggingEnabled:
+        car.log.update(0.01) # Log with 0.01s interval
+    
+    if time.time() - lastControl > .1:
+        
+        lastControl = time.time()
+        
+        left = 0.0
+        right = 0.0
+            
+        # Control via xbox controller
+        if car.var.gamepadEnabled:     
+            if con.gamepad.buttons()[0]:
+
+                # Get joystick values
+                joystick = con.gamepad.left_stick()
+                
+                # Calculate left and right speed
+                left = round(joystick[1] + joystick[0] / 4, 4)
+                right = -round(joystick[1] - joystick[0] / 4, 4)
+
+        # Else control via path finding
+        
+        car.motors.setSpeed( 0 , int(left * car.maxSpeed) )
+        car.motors.setSpeed( 1 , int(right * car.maxSpeed) )
+        car.motors.setSpeed( 2 , int(right * car.maxSpeed) )
+        car.motors.setSpeed( 3 , int(left * car.maxSpeed) )
+        

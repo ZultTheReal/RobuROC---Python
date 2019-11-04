@@ -8,6 +8,8 @@ logExt = '.csv'
 
 class Logging:
     
+    filename = None
+    
     log = None
     data = []
     titles = []
@@ -15,29 +17,37 @@ class Logging:
     logStartTime = 0
     logLine = 0
     
+    startLogging = False
+    
     def __init__(self, filename):
-        
-        self.log = open( path + filename + logExt, "a+")
-        
+       self.filename = filename
     
     def begin(self):
         
-        # Clear old log (if filename is the same as before)
-        self.log.truncate(0)
-        
-        self.logStartTime = time.time()
-        self.logLine = 0
-        
-        
-        header = 'Time [s];'
-        
-        for i in range( len( self.titles ) ):
-            header += self.titles[i] + ';'
+        if self.filename:
             
-        header += '\n'
+            self.log = open( path + self.filename + logExt, "a+")
+            
+            # Clear old log (if filename is the same as before)
+            self.log.truncate(0)
+            
+            self.logStartTime = time.time()
+            self.logLine = 0
+            self.startLogging = True
+            
+            
+            header = 'Time [s];'
+            
+            for i in range( len( self.titles ) ):
+                header += self.titles[i] + ';'
+                
+            header += '\n'
+            
+            self.log.write(header)
         
-        self.log.write(header)
-        
+    def stop(self):
+        self.startLogging = False
+        self.log.close()
         
     def addMeasurements( self, pointer, titles):
         
@@ -55,31 +65,32 @@ class Logging:
     
     def update( self, interval = 0, samples = 0 ):
         
-        
-        if( time.time() >= self.logNextTime and self.logLine < samples):
-            
-            # Calculate the timestamp for this measurement
-            now = time.time() - self.logStartTime
-            
-            # Calculate and fix shift in time due to timing inaccuracies 
-            dif = now - interval*self.logLine
+        if self.startLogging:
+            if( time.time() >= self.logNextTime and (self.logLine < samples or samples == 0) ):
+                
+                # Calculate the timestamp for this measurement
+                now = time.time() - self.logStartTime
+                
+                # Calculate and fix shift in time due to timing inaccuracies 
+                dif = now - interval*self.logLine
 
-            # Set next time a new line should be written to log
-            self.logNextTime = time.time() + interval - dif 
-            
-            string = locale.format('%.4f', now ) + ';'
-            
-            for i in range( len(self.data) ):
-                for j in range( len(self.data[i]) ):
-                    string += locale.format('%.4f', self.data[i][j]) + ';'
-               
-            string += '\n'
-            
-            self.log.write(string)
-            self.logLine += 1
-            
-            print(string)
+                # Set next time a new line should be written to log
+                self.logNextTime = time.time() + interval - dif 
+                
+                string = locale.format('%.4f', now ) + ';'
+                
+                for i in range( len(self.data) ):
+                    for j in range( len(self.data[i]) ):
+                        string += locale.format('%.4f', self.data[i][j]) + ';'
+                   
+                string += '\n'
+                
+                self.log.write(string)
+                self.logLine += 1
+                
+                print(string)
         
-        # If we have reached the wanted number of samples, stop and close the file
-        if self.logLine >= samples:
-            self.log.close()
+            # If we have reached the wanted number of samples, stop and close the file
+            if self.logLine >= samples and samples != 0:
+                self.startLogging = False
+                self.log.close()
