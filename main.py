@@ -4,6 +4,8 @@ import system as car
 import control as con
 import time
 
+car.gui.gpsDataSource = car.gps.data
+
 # Tell the Logging object where from to get the log data
 car.log.addMeasurements(
     car.motors.actualCur,
@@ -15,12 +17,23 @@ car.log.addMeasurements(
     ['Velocity 1','Velocity 2','Velocity 3','Velocity 4']
 )
 
+car.log.addMeasurements(
+    car.gps.data,
+    ['Heading', 'Latitude', 'Lontitude', 'Speed']
+)
+
+car.log.addMeasurements(
+    car.imu.data,
+    ['gX', 'gY', 'gZ','aX', 'aY', 'aZ']
+)
+
 #car.log.addMeasurements(
 #    [gps.X, gps],
 #    ['Heading','Latitude','Longitude','LinearSpeed']
 #)
 
-
+car.gps.connect('COM4')
+car.imu.connect('COM5')
 
 lastControl = 0
 
@@ -28,9 +41,11 @@ while( 1 ):
     
     car.gui.update()
     
+    car.gps.getData()
+    car.imu.getData()
     
     if car.var.loggingEnabled:
-        car.log.update(0.01) # Log with 0.01s interval
+        car.log.update(0.05) # Log with 0.01s interval
     
     if time.time() - lastControl > .1:
         

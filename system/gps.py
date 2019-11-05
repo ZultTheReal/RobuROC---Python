@@ -7,7 +7,8 @@ from .shared import *
 class GPS:
 
     ser = serial.Serial()
-    logPar = [0, 0, 0, 0] #Heading, latitude, lontitude, linear_speed
+    data = [0, 0, 0, 0] #Heading, latitude, lontitude, linear_speed
+    connected = False
 
     def __init__(self):
         self.clear()
@@ -66,60 +67,66 @@ class GPS:
         return 0
 
     def getData(self):
+        
         try:
             bytesWaiting = self.ser.in_waiting
-        except Exception as e:
-            print(e)
-            print('Error: Can\'t read data, no connection to the GPS')
-            return -1 
-
-        try:
+            self.connected = True
+        except Exception as error:
+            self.connected = False
+        
+        if self.connected:
+            
+            tempString = ''
             while self.ser.in_waiting !=0:
-                nmea_string = self.ser.readline().decode().strip('\r\n')
-            newData = self.translateGPSData(nmea_string)
-            if (newData == 1):
-                return 0 #New data succesfully added return 0
-        except Exception as e:
-            print(e)
-            return -1 #Something went wrong, no new data, return -1
-
+                tempString = self.ser.readline().decode().strip('\r\n')
+                
+            # Every line from buffer is read, now use the newest to get data
+            if tempString != '':
+                # Unpack nmea string and save data in class
+                data = self.translateGPSData(tempString)
+                
 
     def checksum(self,nmea_str):
         return reduce(operator.xor, map(ord, nmea_str), 0)
     
     def translateGPSData(self,nmea_str):
         nmea_str = nmea_str.replace('$','') # Remove dollar sign (not needed/not to be counted in CRC)
-        temp = nmea_str.split("*") #Remove checksum at end of nmea_str and save 
-        try:
+        temp = nmea_str.split("*") #Remove checksum at end of nmea_str and save
+        
+        if len(temp) == 2 and temp[1] != '':
             CRC1 = int(temp[1], 16) #convert checksum to integer from hex nmea_str
-        except Exception as e:
-            print(e)
-            #print('Error: No checksum')
-            # GPSc.clear() clear data?????
-            return -1
-        nmea_str = temp[0] 
-        CRC2 = self.checksum(nmea_str) #Calculate checksum for received nmea_str 
 
-        if (CRC1 == CRC2): # if the two checksums match update the GPS info
-            temp = nmea_str.split(",")
-            self.sat_count = int(temp[3])
-            self.timestamp = self.floatOrZero(temp[4])
-            self.latitude = self.floatOrZero(temp[5]) #In format ddmm.mmmmmm
-            self.latitude = round(int(self.latitude / 100) + (self.latitude - int(self.latitude/100.0)*100.0)/60.0,6) #latitude degree
-            self.latitude_dir = temp[+6]  
-            self.longitude = self.floatOrZero(temp[7]) #In format dddmm.mmmmmm
-            self.longitude = round(int(self.longitude / 100) + (self.longitude - int(self.longitude/100.0)*100.0)/60.0,6) #longtitude degree
-            self.longitude_dir = temp[8]
-            self.altitude = self.floatOrZero(temp[9])
-            self.heading = self.floatOrZero(temp[11])
-            self.linear_speed = self.floatOrZero(temp[12])
-            self.rate_of_climb = self.floatOrZero(temp[13])
-            self.logPar = [self.heading, self.latitude, self.longitude, self.linear_speed] #Heading, latitude, lontitude, linear_speed
-            return 0
-        else:
-            #print('Error: Checksums doesn\'t match')
-            # GPSc.clear() clear data?????
-            return -1  
+            nmea_str = temp[0] 
+            CRC2 = self.checksum(nmea_str) #Calculate checksum for received nmea_str 
+
+            if (CRC1 == CRC2): # if the two checksums match update the GPS info
+                temp = nmea_str.split(",")
+                self.sat_count = int(temp[3])
+                self.timestamp = self.floatOrZero(temp[4])
+                self.latitude = self.floatOrZero(temp[5]) #In format ddmm.mmmmmm
+                self.latitude = round(int(self.latitude / 100) + (self.latitude - int(self.latitude/100.0)*100.0)/60.0,6) #latitude degree
+                self.latitude_dir = temp[+6]  
+                self.longitude = self.floatOrZero(temp[7]) #In format dddmm.mmmmmm
+                self.longitude = round(int(self.longitude / 100) + (self.longitude - int(self.longitude/100.0)*100.0)/60.0,6) #longtitude degree
+                self.longitude_dir = temp[8]
+                self.altitude = self.floatOrZero(temp[9])
+                self.heading = self.floatOrZero(temp[11])
+                self.linear_speed = self.floatOrZero(temp[12])
+                self.rate_of_climb = self.floatOrZero(temp[13])
+                
+                
+                self.data[0] = self.heading
+                self.data[1] = self.latitude
+                self.data[2] = self.longitude
+                self.data[3] = self.linear_speed
+                
+                #Heading, latitude, lontitude, linear_speed
+                
+                return 0
+            else:
+                #print('Error: Checksums doesn\'t match')
+                # GPSc.clear() clear data?????
+                return -1  
 
     def floatOrZero(self,strValue):
         if (strValue != ""):

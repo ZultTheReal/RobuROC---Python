@@ -81,7 +81,7 @@ class Logging:
                 
                 for i in range( len(self.data) ):
                     for j in range( len(self.data[i]) ):
-                        string += locale.format('%.4f', self.data[i][j]) + ';'
+                        string += locale.format('%.6f', self.data[i][j]) + ';'
                    
                 string += '\n'
                 

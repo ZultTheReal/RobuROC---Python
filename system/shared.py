@@ -1,8 +1,11 @@
 from .motorControl import MotorControl
 from .dataLogger import Logging
 
+
 # Motor controller object as this is used between the other objects aswell
 motors = MotorControl()
+
+
 
 # Logging object
 log = Logging('measurements')

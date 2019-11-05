@@ -6,6 +6,8 @@ from datetime import datetime
 appTitle = 'RoboRUC Control Panel'
 rowTitles = ['Motor','Current [A]','Velocity [m/s]']
 
+gpsTitles = ['Heading', 'Latitude', 'Lontitude', 'Speed']
+
 class Interface:
     
     # Defining the labels
@@ -13,6 +15,15 @@ class Interface:
     curLabel = [None for x in range(4)]
     velLabel = [None for x in range(4)]
     titleLabel = [None for x in range(3)]
+    
+    gpsTitleLabel = [None for x in range(4)]
+    gpsDataLabel = [None for x in range(4)]
+    
+    
+    # Pointer to data sources for gui
+    gpsDataSource = None
+    velDataSource = None
+    curDataSource = None
     
     log = None
     
@@ -25,7 +36,7 @@ class Interface:
         
     def setup(self):
         
-        self.root.geometry('800x400')
+        self.root.geometry('800x500')
         self.root.title(appTitle)
         self.root.configure(background='black')
         
@@ -52,7 +63,11 @@ class Interface:
         
         dataBox = tk.Frame(leftFrame)
         dataBox.configure(background='black')
-        dataBox.pack(pady=50)
+        dataBox.pack(pady=30)
+        
+        gpsBox = tk.Frame(leftFrame)
+        gpsBox.configure(background='black')
+        gpsBox.pack(pady=30)
 
         footerBox = tk.Frame(leftFrame)
         footerBox.configure(background='black')
@@ -104,8 +119,6 @@ class Interface:
             self.motorLabel[i] = ttk.Label(dataBox, text=labelText, font=("Calibri", 18), foreground="white", background="black")
             self.motorLabel[i].grid(row=0, column=i+1, padx=5, sticky='e')
             
-            
-            
             # Label for current
             self.curLabel[i] = ttk.Label(dataBox, text="0.0", font=("Calibri", 16), foreground="white", background="black")
             self.curLabel[i].grid(row=1, column=i+1, padx=5, sticky='e')
@@ -118,6 +131,17 @@ class Interface:
         for i in range(3):
             self.titleLabel[i] = ttk.Label(dataBox, text=rowTitles[i], font=("Calibri", 18), foreground="white", background="black")
             self.titleLabel[i].grid(row=i, column=0, padx=5, sticky='w')
+            
+        
+        for i in range(4):
+            
+            gpsBox.grid_columnconfigure(i, minsize=80)
+            
+            self.gpsTitleLabel[i] = ttk.Label(gpsBox, text=gpsTitles[i], font=("Calibri", 18), foreground="white", background="black")
+            self.gpsTitleLabel[i].grid(row=0, column=i, padx=5, sticky='w')
+            
+            self.gpsDataLabel[i] = ttk.Label(gpsBox, text='0', font=("Calibri", 18), foreground="white", background="black")
+            self.gpsDataLabel[i].grid(row=1, column=i, padx=5, sticky='e')
     
     def addToLog(self, newline):
         time = datetime.now().strftime("%H:%M:%S")
@@ -155,13 +179,14 @@ class Interface:
         
     def stopCar(self):
         pass
+      
     
     def update(self):
         
         for i in range(4):
             self.velLabel[i]['text'] = motors.actualVel[i]
             self.curLabel[i]['text'] = motors.actualCur[i]
-
+            self.gpsDataLabel[i]['text'] = self.gpsDataSource[i]
         
         self.root.update()
         
