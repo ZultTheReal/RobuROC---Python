@@ -32,18 +32,21 @@ car.log.addMeasurements(
 #    ['Heading','Latitude','Longitude','LinearSpeed']
 #)
 
+
 car.gps.connect('COM4')
 car.imu.connect('COM5')
-
+    
 lastControl = 0
 
 while( 1 ):
     
     car.gui.update()
     
+
     car.gps.getData()
     car.imu.getData()
-    
+
+        
     if car.var.loggingEnabled:
         car.log.update(0.05) # Log with 0.01s interval
     
@@ -71,4 +74,13 @@ while( 1 ):
         car.motors.setSpeed( 1 , int(right * car.maxSpeed) )
         car.motors.setSpeed( 2 , int(right * car.maxSpeed) )
         car.motors.setSpeed( 3 , int(left * car.maxSpeed) )
+        
+
+    # Print errors to gui log
+    for i in range(len(car.errors)):
+        
+        error = car.errors.pop(i-1)
+        print( error )
+        car.gui.addToLog(error[0], error[1])
+        
         

@@ -1,16 +1,12 @@
 from .motorControl import MotorControl
-from .dataLogger import Logging
+from .logging import Logging
 
+errors = []
 
 # Motor controller object as this is used between the other objects aswell
 motors = MotorControl()
 
-
-
-# Logging object
-log = Logging('measurements')
-
-class SharedVariables:
+class Variables:
 
     # Variables for gui to act with main
     gamepadEnabled = False
@@ -21,4 +17,7 @@ class SharedVariables:
     imuConnected = False
     
 
-var = SharedVariables()
+var = Variables()
+
+# Logging object
+log = Logging('measurements')

@@ -40,15 +40,12 @@ class GPS:
             )
             
             self.setup()
-            var.gpsConnected = True
+            self.connected = True
 
-            return 0
-        
         except Exception as error:
             
-            var.gpsConnected = False
-            return -1
-
+            self.connected = False
+            errors.append( ['GPS', 'Not connected'] )
 
     def setup(self):
         self.ser.write("$PASHS,POP,20\r\n".encode('UTF-8')) #Return to standard settings
@@ -83,50 +80,52 @@ class GPS:
             # Every line from buffer is read, now use the newest to get data
             if tempString != '':
                 # Unpack nmea string and save data in class
-                data = self.translateGPSData(tempString)
+                data = self.unpack(tempString)
                 
 
     def checksum(self,nmea_str):
         return reduce(operator.xor, map(ord, nmea_str), 0)
     
-    def translateGPSData(self,nmea_str):
+    def unpack(self,nmea_str):
+        
         nmea_str = nmea_str.replace('$','') # Remove dollar sign (not needed/not to be counted in CRC)
         temp = nmea_str.split("*") #Remove checksum at end of nmea_str and save
         
-        if len(temp) == 2 and temp[1] != '':
+        if len(temp) is 2 and temp[1] is not '':
+            
             CRC1 = int(temp[1], 16) #convert checksum to integer from hex nmea_str
 
             nmea_str = temp[0] 
             CRC2 = self.checksum(nmea_str) #Calculate checksum for received nmea_str 
 
-            if (CRC1 == CRC2): # if the two checksums match update the GPS info
+            if CRC1 is CRC2: # if the two checksums match update the GPS info
                 temp = nmea_str.split(",")
-                self.sat_count = int(temp[3])
-                self.timestamp = self.floatOrZero(temp[4])
-                self.latitude = self.floatOrZero(temp[5]) #In format ddmm.mmmmmm
-                self.latitude = round(int(self.latitude / 100) + (self.latitude - int(self.latitude/100.0)*100.0)/60.0,6) #latitude degree
-                self.latitude_dir = temp[+6]  
-                self.longitude = self.floatOrZero(temp[7]) #In format dddmm.mmmmmm
-                self.longitude = round(int(self.longitude / 100) + (self.longitude - int(self.longitude/100.0)*100.0)/60.0,6) #longtitude degree
-                self.longitude_dir = temp[8]
-                self.altitude = self.floatOrZero(temp[9])
-                self.heading = self.floatOrZero(temp[11])
-                self.linear_speed = self.floatOrZero(temp[12])
-                self.rate_of_climb = self.floatOrZero(temp[13])
                 
+                try:
+                    self.sat_count = int(temp[3])
+                    self.timestamp = self.floatOrZero(temp[4])
+                    self.latitude = self.floatOrZero(temp[5]) #In format ddmm.mmmmmm
+                    self.latitude = round(int(self.latitude / 100) + (self.latitude - int(self.latitude/100.0)*100.0)/60.0,6) #latitude degree
+                    self.latitude_dir = temp[+6]  
+                    self.longitude = self.floatOrZero(temp[7]) #In format dddmm.mmmmmm
+                    self.longitude = round(int(self.longitude / 100) + (self.longitude - int(self.longitude/100.0)*100.0)/60.0,6) #longtitude degree
+                    self.longitude_dir = temp[8]
+                    self.altitude = self.floatOrZero(temp[9])
+                    self.heading = self.floatOrZero(temp[11])
+                    self.linear_speed = self.floatOrZero(temp[12])
+                    self.rate_of_climb = self.floatOrZero(temp[13])
+                    
+                except Exception as error:
+                    errors.append( ['GPS', 'Could not unpack data'] )
                 
+                #Heading, latitude, lontitude, linear_speed
                 self.data[0] = self.heading
                 self.data[1] = self.latitude
                 self.data[2] = self.longitude
-                self.data[3] = self.linear_speed
-                
-                #Heading, latitude, lontitude, linear_speed
-                
-                return 0
+                self.data[3] = self.linear_speed  
+    
             else:
-                #print('Error: Checksums doesn\'t match')
-                # GPSc.clear() clear data?????
-                return -1  
+                errors.append( ['GPS', 'Checksum doesn\'t match'] )
 
     def floatOrZero(self,strValue):
         if (strValue != ""):

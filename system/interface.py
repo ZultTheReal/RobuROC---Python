@@ -32,7 +32,7 @@ class Interface:
         self.root = tk.Tk()
         self.setup()
         
-        self.addToLog("Interface Ready")
+        self.addToLog('GUI', 'Ready')
         
     def setup(self):
         
@@ -143,13 +143,13 @@ class Interface:
             self.gpsDataLabel[i] = ttk.Label(gpsBox, text='0', font=("Calibri", 18), foreground="white", background="black")
             self.gpsDataLabel[i].grid(row=1, column=i, padx=5, sticky='e')
     
-    def addToLog(self, newline):
+    def addToLog(self, arg, message):
         time = datetime.now().strftime("%H:%M:%S")
         
-        self.log.insert(tk.END, time)
-        self.log.insert(tk.END, '\t')
-        self.log.insert(tk.END, newline)
-        self.log.insert(tk.END, '\n')
+        string = time + ' - ' + arg + ': ' + message + '\n'
+    
+        self.log.insert(tk.END, string)
+
     
     def pauseCar(self):
         motors.pause()

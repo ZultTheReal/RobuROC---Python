@@ -27,17 +27,12 @@ class IMU:
                 parity=serial.PARITY_NONE,
                 stopbits=serial.STOPBITS_ONE,
                 bytesize=serial.EIGHTBITS,
-                timeout=0.5
+                timeout=0
             )
-
-            var.imuConnected = True
-
-            return 0
-        
+            self.connected = True
         except Exception as error:
-            
-            var.imuConnected = False
-            return -1
+            self.connected = False
+            errors.append( ['IMU', 'Not connected'] )
         
     def getData(self):
 
