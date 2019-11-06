@@ -37,6 +37,8 @@ car.imu.connect('COM5')
     
 lastControl = 0
 
+
+
 while( 1 ):
     
     car.gui.update()
@@ -50,7 +52,7 @@ while( 1 ):
         car.log.update(0.05) # Log with 0.01s interval
     
     if time.time() - lastControl > .1:
-        
+
         lastControl = time.time()
         
         left = 0.0

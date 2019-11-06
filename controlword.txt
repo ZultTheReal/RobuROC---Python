@@ -1,0 +1,6 @@
+
+ControlWord: Dynamic brake
+
+0000100000001001
+
+0x809

@@ -21,6 +21,7 @@ SCALE_VELOCITY =  ((pow(2,17)/(2*20000)*pow(2,19))/1000)*32 # To RPM
 SCALE_RPM_TO_MPS = (2 * 3.14)/60*WHEEL_RADIUS
 
 COBID_SDO = [0x601, 0x602, 0x603, 0x604]
+COBID_SDO_RETURN = [0x581, 0x582, 0x583, 0x584]
 COBID_HEARTBEAT = [0x701, 0x702, 0x703, 0x704]
 
 # Object indexes for configuration

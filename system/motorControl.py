@@ -69,6 +69,20 @@ class MotorControl:
         scaled = 0   
         value = int.from_bytes(data, byteorder='little', signed=True)
 
+        if canid in COBID_SDO_RETURN:
+            # SDO data returned
+            
+            index = int.from_bytes(data[1:3], byteorder='little', signed=False)
+            subindex = data[3]
+            
+            #print( index, subindex )
+            if index == 0x2010 and subindex == 0x03:
+                print( canid, list(data))
+                value = int.from_bytes(data[4:8], byteorder='little', signed=True)
+                #print( round( value/SCALE_CURRENT, 4) )
+            
+            #print( index, subindex )
+
         if canid in COBID_ACT_CURRENT:
             
             if( (canid - 897 + 1) in [2,3] ):
@@ -91,6 +105,11 @@ class MotorControl:
     def startPeriodic(self):
         #RTR - Actual Current
         for i in range(4):
+            
+            #packet = self.sdoPacket( 0x2010, 0x03 )
+            #self.curPeriodic[i] = self.network.send_periodic( COBID_SDO[i], packet, .1, remote=False)
+            #self.network.subscribe( COBID_SDO_RETURN[i], self.readPeriodic)
+            
             self.curPeriodic[i] = self.network.send_periodic( COBID_ACT_CURRENT[i], 8, .1, remote=True)
             self.network.subscribe( COBID_ACT_CURRENT[i], self.readPeriodic)
 
@@ -212,6 +231,14 @@ class MotorControl:
 
     def sdoRead(self, COBID = 0, index = 0, subindex = 0 ):
         
+        data = self.sdoPacket(index, subindex)
+            
+        self.sendCanPacket(COBID, data)
+        
+        # Now read packet from PCAN-VIEW <3
+        
+    def sdoPacket(self, index = 0, subindex = 0 ):
+        
         commandByte = [0x40]
         
         # Convert object index into two bytes and append the subindex
@@ -223,10 +250,8 @@ class MotorControl:
         # Append zeroes if data is less than 8 bytes long
         for i in range(8-len(data)):
             data.append(0)
-            
-        self.sendCanPacket(COBID, data)
         
-        # Now read packet from PCAN-VIEW <3
+        return data
     
     def setDeceleration(self, value):
         
