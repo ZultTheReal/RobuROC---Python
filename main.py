@@ -80,7 +80,7 @@ while( 1 ):
     for i in range(len(car.errors)):
         
         error = car.errors.pop(i-1)
-        print( error )
+        #print( error )
         car.gui.addToLog(error[0], error[1])
         
         

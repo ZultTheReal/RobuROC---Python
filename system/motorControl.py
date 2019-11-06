@@ -66,17 +66,24 @@ class MotorControl:
         
     def readPeriodic(self, canid, data, timestamp):
 
-        scaled = 0
+        scaled = 0   
         value = int.from_bytes(data, byteorder='little', signed=True)
 
-
         if canid in COBID_ACT_CURRENT:
-            scaled = round( value/SCALE_CURRENT, 2)
+            
+            if( (canid - 897 + 1) in [2,3] ):
+                value = -value
+                
+            scaled = round( value/SCALE_CURRENT, 4)
             index = int(COBID_ACT_CURRENT.index(canid))
             self.actualCur[index] = scaled
-
+            
         if canid in COBID_ACT_VELOCITY:
-            scaled = round(value/SCALE_VELOCITY*SCALE_RPM_TO_MPS, 2)
+            
+            if( (canid - 881 + 1) in [2,3] ):
+                value = -value
+                
+            scaled = round(value/SCALE_VELOCITY*SCALE_RPM_TO_MPS, 4)
             index = int(COBID_ACT_VELOCITY.index(canid))
             self.actualVel[index] = scaled
             

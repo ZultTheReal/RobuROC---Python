@@ -88,7 +88,7 @@ class Logging:
                 self.log.write(string)
                 self.logLine += 1
                 
-                print(string)
+                #print(string)
         
             # If we have reached the wanted number of samples, stop and close the file
             if self.logLine >= samples and samples != 0:

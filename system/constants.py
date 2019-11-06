@@ -1,5 +1,5 @@
 
-maxSpeed = 2000000;
+maxSpeed = 3000000;
 
 # CAN bus IDs for ControlWord
 COBID_HOST = 0x05

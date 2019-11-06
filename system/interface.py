@@ -3,10 +3,20 @@ from tkinter import ttk
 from .shared import *
 from datetime import datetime
 
+# For plotting
+#import matplotlib.animation as animation
+#from matplotlib import style
+#style.use('ggplot')
+
+
 appTitle = 'RoboRUC Control Panel'
 rowTitles = ['Motor','Current [A]','Velocity [m/s]']
 
 gpsTitles = ['Heading', 'Latitude', 'Lontitude', 'Speed']
+
+plotSamples = 100
+
+
 
 class Interface:
     
@@ -26,6 +36,11 @@ class Interface:
     curDataSource = None
     
     log = None
+    
+    graphTimeStart = 0
+    lastGraphUpdate = 0
+    xAxis = [0 for x in range(plotSamples)]
+    yAxis = [0 for x in range(plotSamples)]
     
     def __init__(self):
         
@@ -142,6 +157,32 @@ class Interface:
             
             self.gpsDataLabel[i] = ttk.Label(gpsBox, text='0', font=("Calibri", 18), foreground="white", background="black")
             self.gpsDataLabel[i].grid(row=1, column=i, padx=5, sticky='e')
+    
+    
+    def setupGraph(self):
+        
+        self.graphTimeStart = time.time()
+        
+        self.figure = Figure(figsize=(5,4), dpi=100)
+        self.plotAnimate = self.figure.add_subplot(1,1,1)
+        
+    def updateGraph(i):
+
+        
+        # Shift data new data
+        self.xAxis[:] = self.xAxis[1:] + [self.xAxis[0]]
+        self.yAxis[:] = self.yAxis[1:] + [self.yAxis[0]]
+        
+        # get new data
+        self.xAxis[plotSamples] = self.velDataSource[0]
+        self.yAxis[plotSamples] = time.time() - self.graphTimeStart
+        
+        
+
+
+        a.clear()
+        a.plot(self.xAxis,self.yAxis)
+        
     
     def addToLog(self, arg, message):
         time = datetime.now().strftime("%H:%M:%S")
