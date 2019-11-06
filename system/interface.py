@@ -2,10 +2,17 @@ import tkinter as tk
 from tkinter import ttk
 from .shared import *
 from datetime import datetime
+import time
+import random
 
 # For plotting
+#import matplotlib
+#matplotlib.use("TkAgg")
+#from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+#from matplotlib.figure import Figure
 #import matplotlib.animation as animation
 #from matplotlib import style
+
 #style.use('ggplot')
 
 
@@ -83,6 +90,10 @@ class Interface:
         gpsBox = tk.Frame(leftFrame)
         gpsBox.configure(background='black')
         gpsBox.pack(pady=30)
+        
+        #self.graphBox = tk.Frame(leftFrame)
+        #self.graphBox.configure(background='black')
+        #self.graphBox.pack(pady=30)
 
         footerBox = tk.Frame(leftFrame)
         footerBox.configure(background='black')
@@ -159,6 +170,9 @@ class Interface:
             self.gpsDataLabel[i].grid(row=1, column=i, padx=5, sticky='e')
     
     
+        #self.setupGraph()
+        
+    
     def setupGraph(self):
         
         self.graphTimeStart = time.time()
@@ -166,23 +180,27 @@ class Interface:
         self.figure = Figure(figsize=(5,4), dpi=100)
         self.plotAnimate = self.figure.add_subplot(1,1,1)
         
+        canvas = FigureCanvasTkAgg(self.figure, tk.Frame)
+        canvas.show()
+        canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
+        
+        
     def updateGraph(i):
 
-        
-        # Shift data new data
-        self.xAxis[:] = self.xAxis[1:] + [self.xAxis[0]]
-        self.yAxis[:] = self.yAxis[1:] + [self.yAxis[0]]
-        
-        # get new data
-        self.xAxis[plotSamples] = self.velDataSource[0]
-        self.yAxis[plotSamples] = time.time() - self.graphTimeStart
-        
-        
+        if time.time() - lastGraphUpdate >= 0.5:
+            lastGraphUpdate = time.time()
+            
+            # Shift data new data
+            self.xAxis[:] = self.xAxis[1:] + [self.xAxis[0]]
+            self.yAxis[:] = self.yAxis[1:] + [self.yAxis[0]]
+            
+            # get new data
+            self.xAxis[plotSamples] = randrange(50) #self.velDataSource[0]
+            self.yAxis[plotSamples] = time.time() - self.graphTimeStart
+            
+            self.plotAnimate.clear()
+            self.plotAnimate.plot(self.xAxis,self.yAxis)
 
-
-        a.clear()
-        a.plot(self.xAxis,self.yAxis)
-        
     
     def addToLog(self, arg, message):
         time = datetime.now().strftime("%H:%M:%S")
@@ -230,6 +248,8 @@ class Interface:
             self.gpsDataLabel[i]['text'] = self.gpsDataSource[i]
         
         self.root.update()
+        
+       # self.updateGraph()
         
     def close(self):
         self.root.destroy()

@@ -8,6 +8,7 @@ import os
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame
 import time
+from .shared import *
 
 class InputMap:
     # Digital inputs (buttons)
@@ -37,7 +38,7 @@ class Gamepad:
     
     joystick = None
     joystick_id = 0
-    connectStatus = False
+    connectStatus = True
     
     refresh_time = 0 
     refresh_delay = 0
@@ -65,6 +66,10 @@ class Gamepad:
         # Init the pygame engine, which supports xbox controller inputs
         pygame.init()
         pygame.joystick.init()
+        
+        self.connect()
+        
+        
         
         # As soon as refresh() is called, the class tries to connect to a gamepad
 
@@ -96,18 +101,19 @@ class Gamepad:
 
             # Count number of connections
             count = pygame.joystick.get_count()
-     
+            
             if( count >= 1 ):
                 self.joystick = pygame.joystick.Joystick(self.joystick_id)
                 self.joystick.init()
                 
                 if not self.connectStatus:
                     self.connectStatus = True
-                    print('Joystick was connected')
+                    errors.append( ['Joystick', 'Connected'] )
             else:
+                
                 if self.connectStatus:
                     self.connectStatus = False
-                    print('Joystick was disconnected')
+                    errors.append( ['Joystick', 'Not connected'] )
                 
 
     def connected(self):

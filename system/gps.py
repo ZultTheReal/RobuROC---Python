@@ -36,7 +36,7 @@ class GPS:
                 parity=serial.PARITY_NONE,
                 stopbits=serial.STOPBITS_ONE,
                 bytesize=serial.EIGHTBITS,
-                timeout=0
+                timeout=0.05
             )
             
             self.setup()
@@ -73,12 +73,14 @@ class GPS:
         
         if self.connected:
             
+            
             tempString = ''
             while self.ser.in_waiting !=0:
                 tempString = self.ser.readline().decode().strip('\r\n')
                 
             # Every line from buffer is read, now use the newest to get data
             if tempString != '':
+
                 # Unpack nmea string and save data in class
                 data = self.unpack(tempString)
                 
@@ -106,7 +108,7 @@ class GPS:
                     self.timestamp = self.floatOrZero(temp[4])
                     self.latitude = self.floatOrZero(temp[5]) #In format ddmm.mmmmmm
                     self.latitude = round(int(self.latitude / 100) + (self.latitude - int(self.latitude/100.0)*100.0)/60.0,6) #latitude degree
-                    self.latitude_dir = temp[+6]  
+                    self.latitude_dir = temp[6]  
                     self.longitude = self.floatOrZero(temp[7]) #In format dddmm.mmmmmm
                     self.longitude = round(int(self.longitude / 100) + (self.longitude - int(self.longitude/100.0)*100.0)/60.0,6) #longtitude degree
                     self.longitude_dir = temp[8]

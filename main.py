@@ -1,7 +1,6 @@
 
 # Import the classes for interfacing with the RobuROC
 import system as car
-import control as con
 import time
 
 car.gui.gpsDataSource = car.gps.data
@@ -59,10 +58,10 @@ while( 1 ):
             
         # Control via xbox controller
         if car.var.gamepadEnabled:     
-            if con.gamepad.buttons()[0]:
+            if car.gamepad.buttons()[0]: # If button A is pressed
 
                 # Get joystick values
-                joystick = con.gamepad.left_stick()
+                joystick = car.gamepad.left_stick()
                 
                 # Calculate left and right speed
                 left = round(joystick[1] + joystick[0] / 4, 4)
@@ -77,10 +76,9 @@ while( 1 ):
         
 
     # Print errors to gui log
-    for i in range(len(car.errors)):
-        
-        error = car.errors.pop(i-1)
-        #print( error )
+    for i in range(0,len(car.errors)):
+
+        error = car.errors.pop()
         car.gui.addToLog(error[0], error[1])
         
         
