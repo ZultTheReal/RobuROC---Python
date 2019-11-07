@@ -1,6 +1,13 @@
 
 ControlWord: Dynamic brake
 
-0000100000001001
+Bit
+0: Switch on
+1: Disable Voltage
+2: Quick Stop
+3: Enable
+11: Dynamic brake
 
-0x809
+0000100000001111
+
+0x80F

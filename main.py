@@ -71,12 +71,13 @@ while( 1 ):
 
         # Else control via path finding
         
-        car.motors.setSpeed( 0 , int(left * car.maxSpeed) )
-        car.motors.setSpeed( 1 , int(right * car.maxSpeed) )
-        car.motors.setSpeed( 2 , int(right * car.maxSpeed) )
-        car.motors.setSpeed( 3 , int(left * car.maxSpeed) )
+        car.motors.setRPM( 0 , left * car.maxSpeed )
+        car.motors.setRPM( 1 , right * car.maxSpeed )
+        car.motors.setRPM( 2 , right * car.maxSpeed )
+        car.motors.setRPM( 3 , left * car.maxSpeed )
         
-
+        #car.motors.setRPM( 0, 1.0 )
+            
     # Print errors to gui log
     for i in range(0,len(car.errors)):
 

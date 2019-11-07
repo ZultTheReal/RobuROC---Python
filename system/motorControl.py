@@ -62,7 +62,9 @@ class MotorControl:
             self.switchOn()
             
             # Enter Operation Enable (ready to drive) 
-            self.enableOperation() 
+            self.enableOperation()
+            
+            #self.dynamicBrake()
         
     def readPeriodic(self, canid, data, timestamp):
 
@@ -79,7 +81,7 @@ class MotorControl:
             if index == 0x2010 and subindex == 0x03:
                 print( canid, list(data))
                 value = int.from_bytes(data[4:8], byteorder='little', signed=True)
-                #print( round( value/SCALE_CURRENT, 4) )
+                print( round( value/SCALE_CURRENT, 4) )
             
             #print( index, subindex )
 
@@ -105,11 +107,6 @@ class MotorControl:
     def startPeriodic(self):
         #RTR - Actual Current
         for i in range(4):
-            
-            #packet = self.sdoPacket( 0x2010, 0x03 )
-            #self.curPeriodic[i] = self.network.send_periodic( COBID_SDO[i], packet, .1, remote=False)
-            #self.network.subscribe( COBID_SDO_RETURN[i], self.readPeriodic)
-            
             self.curPeriodic[i] = self.network.send_periodic( COBID_ACT_CURRENT[i], 8, .1, remote=True)
             self.network.subscribe( COBID_ACT_CURRENT[i], self.readPeriodic)
 
@@ -117,7 +114,12 @@ class MotorControl:
         for i in range(0, 4):
             self.velPeriodic[i] = self.network.send_periodic( COBID_ACT_VELOCITY[i], 8, .1, remote=True)
             self.network.subscribe( COBID_ACT_VELOCITY[i], self.readPeriodic)
-            
+           
+        # SDO - Current measured - Torque
+        #for i in range(4):
+        #    packet = self.sdoPacket( 0x2010, 0x03 )
+        #    self.curPeriodic[i] = self.network.send_periodic( COBID_SDO[i], packet, .1, remote=False)
+        #    self.network.subscribe( COBID_SDO_RETURN[i], self.readPeriodic)
  
     def isReady(self):
         return self.canReady
@@ -134,17 +136,51 @@ class MotorControl:
 
         if isinstance(speed, int):
             # Convert speed to bytearray for sending over CAN
-            data = (speed).to_bytes(4, byteorder="little", signed=True)
             
-            self.sendCanPacket( COBID_TAR_VELOCITY[index], list(data) )
+            if speed == 0:
+                # Change mode
+                self.setMode('current')
+                
+                # Set current to zero, dont use velocity
+                current = 0
+                
+                data = (current).to_bytes(4, byteorder="little", signed=True)
+                self.sendCanPacket( COBID_TAR_CURRENT[index], [0] )
+            else:
+                
+                # Change mode
+                self.setMode('velocity')
+                
+                data = (speed).to_bytes(4, byteorder="little", signed=True)
+                self.sendCanPacket( COBID_TAR_VELOCITY[index], list(data) )
+            
         else:
             raise TypeError('Unvalid speed type')
     
+    def setMode( self, mode ):
+        
+        # Control word ( enable operation )
+        prepend = [0x0F, 0]
+        
+        if mode == 'current':
+            # Set current mode
+            mode = 4
+            data = (mode).to_bytes(1, byteorder="little", signed=True)
+        else:
+            # Set velocity mode
+            mode = 3
+            data = (mode).to_bytes(1, byteorder="little", signed=True)
+            
+        for i in range(4):
+            self.sendCanPacket( COBID_MODE[i], prepend + list(data) ) 
+    
     def setRPM( self, index = 0, rpm = 0 ):
         
+        
         # Convert speed (m/s) to motor speed value
-        speed = rpm / SCALE_VELOCITY
-        self.setSpeed( index, speed )
+        speed = rpm * (SCALE_VELOCITY/SCALE_RPM_TO_MPS)
+        #print(speed)
+        self.setSpeed( index, int(speed) )
     
     # --- Communication state machine functions ---
     
@@ -201,6 +237,11 @@ class MotorControl:
         for i in range(4):
             self.sendCanPacket(COBID_CONTROL[i], data)
       
+    def dynamicBrake(self):
+        
+        data = [0x80F, 0]
+        for i in range(4):
+            self.sendCanPacket(COBID_CONTROL[i], data)
       
     def sdoWrite(self, COBID = 0, data = None, index = 0, subindex = 0 ):
     
