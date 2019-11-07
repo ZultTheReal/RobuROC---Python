@@ -10,6 +10,7 @@ class MotorControl:
     setpointSpeed = [0, 0, 0, 0]
     network = None
     canReady = False
+    ready = False
     
     errors = []
     
@@ -20,11 +21,15 @@ class MotorControl:
     # Arrays to hold periodic can objects 
     curPeriodic = [None, None, None, None]
     velPeriodic = [None, None, None, None]
+    heartPeriodic = None
     
     controlMode = 0
     
-    def __init__(self):
+    errors = None
+    
+    def __init__(self, log):
         
+        self.errors = log
         self.connect()
             
     def disconnect( self ):
@@ -38,16 +43,28 @@ class MotorControl:
     def connect( self ):
         
         if not self.isReady():
-            try:            
+            try:
+                
                 self.network = canopen.Network()
                 self.network.connect(bustype='pcan', channel='PCAN_USBBUS1', bitrate=1000000)
                 self.canReady = True
                 
             except Exception as error:
+
+                self.errors.append( ['CAN', 'Network not connected'] )
                 self.canReady = False
         
     def setup(self):
         
+        if self.ready:
+            # Stop old processes, in order to reinitiate everything
+            for i in range(4):
+                self.velPeriodic[i].stop()
+            
+            self.heartPeriodic.stop()
+            time.sleep(0.5)
+            # Now continue
+            
         if self.canReady:
             # First reset all drives
             self.resetDrive()
@@ -68,6 +85,8 @@ class MotorControl:
             
             # Enter Operation Enable (ready to drive) 
             self.enableOperation()
+            
+            self.ready = True
             
             #self.dynamicBrake()
         
@@ -126,6 +145,30 @@ class MotorControl:
         #    self.curPeriodic[i] = self.network.send_periodic( COBID_SDO[i], packet, .1, remote=False)
         #    self.network.subscribe( COBID_SDO_RETURN[i], self.readPeriodic)
  
+ 
+    def startHeartbeat(self):
+    
+        # Consumer Heartbeat object address is 0x1016, with sub-index 01 (page 75 comm manual)
+        
+        # Consumertime Limited between 1-65535 (16-bit unsigned int)
+        consumerTime = 200 # ms
+        timeInBytes = (consumerTime).to_bytes(2, byteorder="little", signed=False)
+        
+        
+        data = list(timeInBytes)
+        data.append(COBID_HOST) # Configure all motor driver nodes to listen for heartbeat from HOST
+    
+        for i in range(4):
+            self.sdoWrite( COBID_SDO[i], data, INDEX_HEARTBEAT, SUBINDEX_HEARTBEAT )
+            
+        time.sleep(0.1)
+        
+        # Begin heartbeat
+        
+        self.heartPeriodic = self.network.send_periodic( 0x700 + COBID_HOST, [0], 0.1, remote=False)
+    
+    # print('[{}]'.format(', '.join(hex(x) for x in data)))
+ 
     def isReady(self):
         return self.canReady
     
@@ -141,10 +184,10 @@ class MotorControl:
 
         if isinstance(speed, int):
             # Convert speed to bytearray for sending over CAN
-            
+            print( "Speed: " , speed )
             if speed == 0:
                 # Change mode
-                self.setMode('current')
+                self.setMode(MODE_CURRENT)
                 
                 # Set current to zero, dont use velocity
                 current = 0
@@ -154,7 +197,7 @@ class MotorControl:
             else:
                 
                 # Change mode
-                self.setMode('velocity')
+                self.setMode(MODE_VELOCITY)
                 
                 data = (speed).to_bytes(4, byteorder="little", signed=True)
                 self.sendCanPacket( COBID_TAR_VELOCITY[index], list(data) )
@@ -167,23 +210,16 @@ class MotorControl:
         # Control word ( enable operation )
         prepend = [0x0F, 0]
         
-        if mode == 'current':
-            # Set current mode
-            if self.controlMode != MODE_CURRENT:
-                
-                data = (MODE_CURRENT).to_bytes(1, byteorder="little", signed=True)
-                self.controlMode = MODE_CURRENT
-                
-        else:
-            # Set velocity mode
-            if self.controlMode != MODE_VELOCITY:
-
-                data = (MODE_VELOCITY).to_bytes(1, byteorder="little", signed=True)
-                self.controlMOde = MODE_VELOCITY
-                
+        # Only change mode if the current mode is different
+        if self.controlMode != mode:
+            data = (mode).to_bytes(1, byteorder="little", signed=True)
             
-        for i in range(4):
-            self.sendCanPacket( COBID_MODE[i], prepend + list(data) ) 
+            for i in range(4):
+                self.sendCanPacket( COBID_MODE[i], prepend + list(data) ) 
+            
+            self.controlMode = mode
+            
+        
     
     def setRPM( self, index = 0, rpm = 0 ):
         
@@ -313,30 +349,7 @@ class MotorControl:
         for i in range(4):
             self.sdoWrite( COBID_SDO[i], data, INDEX_DECELERATION_LIMIT, SUBINDEX_DECELERATION_LIMIT )
             
-
-    def startHeartbeat(self):
-    
-        # Consumer Heartbeat object address is 0x1016, with sub-index 01 (page 75 comm manual)
-        
-        # Consumertime Limited between 1-65535 (16-bit unsigned int)
-        consumerTime = 200 # ms
-        timeInBytes = (consumerTime).to_bytes(2, byteorder="little", signed=False)
-        
-        
-        data = list(timeInBytes)
-        data.append(COBID_HOST) # Configure all motor driver nodes to listen for heartbeat from HOST
-    
-        for i in range(4):
-            self.sdoWrite( COBID_SDO[i], data, INDEX_HEARTBEAT, SUBINDEX_HEARTBEAT )
             
-        time.sleep(0.1)
-        
-        # Begin heartbeat
-        
-        self.network.send_periodic( 0x700 + COBID_HOST, [0], 0.1, remote=False)
-    
-    # print('[{}]'.format(', '.join(hex(x) for x in data)))
-
     def pause(self):
         self.quickStop()
         

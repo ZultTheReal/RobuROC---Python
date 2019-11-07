@@ -39,14 +39,12 @@ lastControl = 0
 
 
 
-while( 1 ):
+while( car.gui.appOpen ):
     
     car.gui.update()
     
-
     car.gps.getData()
     car.imu.getData()
-
         
     if car.var.loggingEnabled:
         car.log.update(0.05) # Log with 0.01s interval
@@ -71,10 +69,11 @@ while( 1 ):
 
         # Else control via path finding
         
-        car.motors.setRPM( 0 , left * car.maxSpeed )
-        car.motors.setRPM( 1 , right * car.maxSpeed )
-        car.motors.setRPM( 2 , right * car.maxSpeed )
-        car.motors.setRPM( 3 , left * car.maxSpeed )
+        if car.motors.ready:
+            car.motors.setRPM( 0 , left * car.maxSpeed )
+            car.motors.setRPM( 1 , right * car.maxSpeed )
+            car.motors.setRPM( 2 , right * car.maxSpeed )
+            car.motors.setRPM( 3 , left * car.maxSpeed )
         
         #car.motors.setRPM( 0, 1.0 )
             
@@ -83,5 +82,9 @@ while( 1 ):
 
         error = car.errors.pop()
         car.gui.addToLog(error[0], error[1])
-        
-        
+
+# If application is closed, kill the network
+try:
+    car.motors.network.disconnect()
+except Exception as error:
+    pass

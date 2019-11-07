@@ -4,7 +4,7 @@ from .logging import Logging
 errors = []
 
 # Motor controller object as this is used between the other objects aswell
-motors = MotorControl()
+motors = MotorControl( errors )
 
 class Variables:
 

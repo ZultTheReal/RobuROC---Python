@@ -49,6 +49,14 @@ class Interface:
     xAxis = [0 for x in range(plotSamples)]
     yAxis = [0 for x in range(plotSamples)]
     
+    appOpen = True
+    
+    def isOpen(self):
+        if 'normal' == self.root.state():
+            return True
+        
+        return False
+    
     def __init__(self):
         
         self.root = tk.Tk()
@@ -61,6 +69,8 @@ class Interface:
         self.root.geometry('800x500')
         self.root.title(appTitle)
         self.root.configure(background='black')
+        
+        self.root.protocol("WM_DELETE_WINDOW", self.close)
         
         # Divide the root frame into two columns
         self.root.grid_rowconfigure(0, weight=1)
@@ -254,7 +264,9 @@ class Interface:
        # self.updateGraph()
         
     def close(self):
+        self.appOpen = False
         self.root.destroy()
+ 
         
     def setLabelValue( self, row='current', value = 0, index = 0 ):
         
