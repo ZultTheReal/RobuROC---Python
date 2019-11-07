@@ -19,7 +19,7 @@ import random
 appTitle = 'RoboRUC Control Panel'
 rowTitles = ['Motor','Current [A]','Velocity [m/s]']
 
-gpsTitles = ['Heading', 'Latitude', 'Lontitude', 'Speed']
+gpsTitles = ['Heading', 'Latitude', 'Lontitude', 'Speed', 'Sat. count']
 
 plotSamples = 100
 
@@ -33,8 +33,8 @@ class Interface:
     velLabel = [None for x in range(4)]
     titleLabel = [None for x in range(3)]
     
-    gpsTitleLabel = [None for x in range(4)]
-    gpsDataLabel = [None for x in range(4)]
+    gpsTitleLabel = [None for x in range(5)]
+    gpsDataLabel = [None for x in range(5)]
     
     
     # Pointer to data sources for gui
@@ -64,7 +64,7 @@ class Interface:
         
         # Divide the root frame into two columns
         self.root.grid_rowconfigure(0, weight=1)
-        self.root.grid_columnconfigure(0, weight=1, minsize=500)
+        self.root.grid_columnconfigure(0, weight=1, minsize=700)
         self.root.grid_columnconfigure(1, weight=1)
         
 
@@ -138,7 +138,7 @@ class Interface:
         
         for i in range(4):
             
-            dataBox.grid_columnconfigure(i+1, minsize=80)
+            dataBox.grid_columnconfigure(i+1, minsize=100)
             
             # Label descripting which motor
             labelText = str(i+1)
@@ -159,9 +159,9 @@ class Interface:
             self.titleLabel[i].grid(row=i, column=0, padx=5, sticky='w')
             
         
-        for i in range(4):
+        for i in range(5):
             
-            gpsBox.grid_columnconfigure(i, minsize=80)
+            gpsBox.grid_columnconfigure(i, minsize=100)
             
             self.gpsTitleLabel[i] = ttk.Label(gpsBox, text=gpsTitles[i], font=("Calibri", 18), foreground="white", background="black")
             self.gpsTitleLabel[i].grid(row=0, column=i, padx=5, sticky='w')
@@ -245,6 +245,8 @@ class Interface:
         for i in range(4):
             self.velLabel[i]['text'] = motors.actualVel[i]
             self.curLabel[i]['text'] = motors.actualCur[i]
+          
+        for i in range(5):
             self.gpsDataLabel[i]['text'] = self.gpsDataSource[i]
         
         self.root.update()

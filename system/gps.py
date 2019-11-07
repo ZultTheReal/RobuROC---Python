@@ -7,7 +7,7 @@ from .shared import *
 class GPS:
 
     ser = serial.Serial()
-    data = [0, 0, 0, 0] #Heading, latitude, lontitude, linear_speed
+    data = [0, 0, 0, 0, 0] #Heading, latitude, lontitude, linear_speed
     connected = False
 
     def __init__(self):
@@ -124,7 +124,8 @@ class GPS:
                 self.data[0] = self.heading
                 self.data[1] = self.latitude
                 self.data[2] = self.longitude
-                self.data[3] = self.linear_speed  
+                self.data[3] = self.linear_speed
+                self.data[4] = self.sat_count
     
             else:
                 errors.append( ['GPS', 'Checksum doesn\'t match'] )

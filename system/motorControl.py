@@ -169,14 +169,14 @@ class MotorControl:
         
         if mode == 'current':
             # Set current mode
-            if self.controlMode not MODE_CURRENT:
+            if self.controlMode != MODE_CURRENT:
                 
                 data = (MODE_CURRENT).to_bytes(1, byteorder="little", signed=True)
                 self.controlMode = MODE_CURRENT
                 
         else:
             # Set velocity mode
-            if self.controlMode not MODE_VELOCITY:
+            if self.controlMode != MODE_VELOCITY:
 
                 data = (MODE_VELOCITY).to_bytes(1, byteorder="little", signed=True)
                 self.controlMOde = MODE_VELOCITY
