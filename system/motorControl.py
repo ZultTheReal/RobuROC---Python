@@ -2,6 +2,9 @@ import canopen
 import time
 from .constants import *
 
+MODE_VELOCITY = 3
+MODE_CURRENT = 4
+
 class MotorControl:
     
     setpointSpeed = [0, 0, 0, 0]
@@ -17,6 +20,8 @@ class MotorControl:
     # Arrays to hold periodic can objects 
     curPeriodic = [None, None, None, None]
     velPeriodic = [None, None, None, None]
+    
+    controlMode = 0
     
     def __init__(self):
         
@@ -164,12 +169,18 @@ class MotorControl:
         
         if mode == 'current':
             # Set current mode
-            mode = 4
-            data = (mode).to_bytes(1, byteorder="little", signed=True)
+            if self.controlMode not MODE_CURRENT:
+                
+                data = (MODE_CURRENT).to_bytes(1, byteorder="little", signed=True)
+                self.controlMode = MODE_CURRENT
+                
         else:
             # Set velocity mode
-            mode = 3
-            data = (mode).to_bytes(1, byteorder="little", signed=True)
+            if self.controlMode not MODE_VELOCITY:
+
+                data = (MODE_VELOCITY).to_bytes(1, byteorder="little", signed=True)
+                self.controlMOde = MODE_VELOCITY
+                
             
         for i in range(4):
             self.sendCanPacket( COBID_MODE[i], prepend + list(data) ) 
