@@ -81,6 +81,7 @@ while( car.gui.appOpen ):
     for i in range(0,len(car.errors)):
 
         error = car.errors.pop()
+        #print(car.errors)
         car.gui.addToLog(error[0], error[1])
 
 # If application is closed, kill the network

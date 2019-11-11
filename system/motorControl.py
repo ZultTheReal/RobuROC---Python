@@ -87,6 +87,8 @@ class MotorControl:
             self.enableOperation()
             
             self.ready = True
+        else:
+            self.errors.append( ['CAN', 'Not connected to CAN bus'] )
             
             #self.dynamicBrake()
         
@@ -177,7 +179,8 @@ class MotorControl:
         try:
             self.network.send_message( cobId, data )
         except Exception as error:
-            self.errors.append(error)
+
+            self.errors.append( ['CAN', error.args[0]] )
             
  
     def setSpeed(self, index = 0, speed = 0):

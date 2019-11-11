@@ -92,7 +92,7 @@ class Gamepad:
         # Only try to reconnect, if there has elapsed the appropiated time since last attempt
         if time.time() - self.reconnect_time > self.reconnect_delay:
             
-            # print( "... Checking joystick")
+            
             self.reconnect_time = time.time()
             
             # Reinitiaze the joystick instance in the pygame object to get current joystick count - takes zero time
@@ -110,6 +110,8 @@ class Gamepad:
                     self.connectStatus = True
                     errors.append( ['Joystick', 'Connected'] )
             else:
+                
+                errors.append( ['Joystick', 'Connecting...'] )
                 
                 if self.connectStatus:
                     self.connectStatus = False
