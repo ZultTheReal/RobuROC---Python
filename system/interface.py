@@ -66,7 +66,7 @@ class Interface:
         
     def setup(self):
         
-        self.root.geometry('800x500')
+        self.root.geometry('1100x500')
         self.root.title(appTitle)
         self.root.configure(background='black')
         
