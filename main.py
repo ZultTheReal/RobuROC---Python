@@ -18,7 +18,7 @@ car.log.addMeasurements(
 
 car.log.addMeasurements(
     car.gps.data,
-    ['Heading gps', 'Latitude', 'Lontitude', 'Speed']
+    ['Heading gps', 'Latitude', 'Lontitude', 'Speed', 'Sat. count']
 )
 
 car.log.addMeasurements(
