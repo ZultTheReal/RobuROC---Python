@@ -21,6 +21,7 @@ class MotorControl:
     # Arrays to hold periodic can objects 
     curPeriodic = [None, None, None, None]
     velPeriodic = [None, None, None, None]
+    tempPeriodic =  [None, None, None, None]
     heartPeriodic = None
     
     controlMode = 0
@@ -35,6 +36,11 @@ class MotorControl:
     def disconnect( self ):
         
         # Make sure to kill CAN network when not using it
+
+        for i in range(4):
+            self.velPeriodic[i].stop()
+            
+        self.heartPeriodic.stop()
 
         self.network.disconnect()
         self.canReady = False
@@ -104,10 +110,12 @@ class MotorControl:
             subindex = data[3]
             
             #print( index, subindex )
-            if index == 0x2010 and subindex == 0x03:
-                print( canid, list(data))
+            
+            # Temperature
+            if index == 0x2021 and subindex == 0x02:
+
                 value = int.from_bytes(data[4:8], byteorder='little', signed=True)
-                print( round( value/SCALE_CURRENT, 4) )
+                print( canid, list(data), round( value/pow(2,16), 4) )
             
             #print( index, subindex )
 
@@ -141,11 +149,11 @@ class MotorControl:
             self.velPeriodic[i] = self.network.send_periodic( COBID_ACT_VELOCITY[i], 8, .1, remote=True)
             self.network.subscribe( COBID_ACT_VELOCITY[i], self.readPeriodic)
            
-        # SDO - Current measured - Torque
+        # SDO - Temperature 
         #for i in range(4):
-        #    packet = self.sdoPacket( 0x2010, 0x03 )
-        #    self.curPeriodic[i] = self.network.send_periodic( COBID_SDO[i], packet, .1, remote=False)
-        #    self.network.subscribe( COBID_SDO_RETURN[i], self.readPeriodic)
+            #packet = self.sdoPacket( 0x2021, 0x01 )
+            #self.tempPeriodic[i] = self.network.send_periodic( COBID_SDO[i], packet, .1, remote=False)
+            #self.network.subscribe( COBID_SDO_RETURN[i], self.readPeriodic)
  
  
     def startHeartbeat(self):
@@ -187,23 +195,23 @@ class MotorControl:
 
         if isinstance(speed, int):
             # Convert speed to bytearray for sending over CAN
-            print( "Speed: " , speed )
-            if speed == 0:
+            #print( "Speed: " , speed )
+            #if speed == 0:
                 # Change mode
-                self.setMode(MODE_CURRENT)
+                #self.setMode(MODE_CURRENT)
                 
                 # Set current to zero, dont use velocity
-                current = 0
+                #current = 0
                 
-                data = (current).to_bytes(4, byteorder="little", signed=True)
-                self.sendCanPacket( COBID_TAR_CURRENT[index], [0] )
-            else:
+                #data = (current).to_bytes(4, byteorder="little", signed=True)
+                #self.sendCanPacket( COBID_TAR_CURRENT[index], [0] )
+            #else:
                 
                 # Change mode
-                self.setMode(MODE_VELOCITY)
+            self.setMode(MODE_VELOCITY)
                 
-                data = (speed).to_bytes(4, byteorder="little", signed=True)
-                self.sendCanPacket( COBID_TAR_VELOCITY[index], list(data) )
+            data = (speed).to_bytes(4, byteorder="little", signed=True)
+            self.sendCanPacket( COBID_TAR_VELOCITY[index], list(data) )
             
         else:
             raise TypeError('Unvalid speed type')

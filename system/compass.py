@@ -1,11 +1,18 @@
 import serial
 import time
-import math 
+import math
+from .shared import *
 
 class Compass:
     
     connected = False
-    data = [0] # Heading 
+    data = [0, 0, 0] # Heading
+    
+    mx_max = 852.6
+    mx_min = -36481.6
+    
+    my_max = 22031.5
+    my_min = -25075.3
     
     def __init__(self):
         self.heading = 0     # Heading measurement from OS5000 (not accurate, because it is mounted on a fawking stick.
@@ -51,16 +58,24 @@ class Compass:
                     packlist = string.split(',')
 
                     if len(packlist) == 4:
-                        
-                        
     
                         self.heading = float(packlist[0])
                         self.mx = float(packlist[1])
                         self.my = float(packlist[2])
                         self.mz = float(packlist[3])
                         
-                        self.data[0] = math.atan2(self.my, -self.mx) * 180.0/math.pi
-
+                        mx_cen = self.mx-(self.mx_max + self.mx_min)/2
+                        my_cen = self.my-(self.my_max + self.my_min)/2
+                        
+                        mx_unit = 2 * mx_cen / (self.mx_max - self.mx_min)
+                        my_unit = 2 * my_cen / (self.my_max - self.my_min)
+                        
+                        
+                        self.data[0] = math.atan2(my_unit, -mx_unit) * 180.0/math.pi
+                        self.data[1] = self.mx
+                        self.data[2] = self.my
+                        
+                        print(self.data[0], self.heading)
                 except Exception as error:
                     print(error)
                     errors.append( ['Compass', 'Unpack failed'] )

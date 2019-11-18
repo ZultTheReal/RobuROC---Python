@@ -18,12 +18,17 @@ car.log.addMeasurements(
 
 car.log.addMeasurements(
     car.gps.data,
-    ['Heading', 'Latitude', 'Lontitude', 'Speed']
+    ['Heading gps', 'Latitude', 'Lontitude', 'Speed']
 )
 
 car.log.addMeasurements(
     car.imu.data,
     ['gX', 'gY', 'gZ','aX', 'aY', 'aZ']
+)
+
+car.log.addMeasurements(
+    car.compass.data,
+    ['Heading mag', 'mX', 'mY']
 )
 
 #car.log.addMeasurements(
@@ -32,8 +37,10 @@ car.log.addMeasurements(
 #)
 
 
-car.gps.connect('COM4')
-car.imu.connect('COM5')
+
+car.compass.connect('COM6')
+car.gps.connect('COM13')
+car.imu.connect('COM14')
     
 lastControl = 0
 
@@ -45,6 +52,7 @@ while( car.gui.appOpen ):
     
     car.gps.getData()
     car.imu.getData()
+    car.compass.getData()
         
     if car.var.loggingEnabled:
         car.log.update(0.05) # Log with 0.01s interval
@@ -86,6 +94,6 @@ while( car.gui.appOpen ):
 
 # If application is closed, kill the network
 try:
-    car.motors.network.disconnect()
+    car.motors.disconnect()
 except Exception as error:
     pass
