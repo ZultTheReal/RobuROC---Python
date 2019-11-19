@@ -24,7 +24,7 @@ class GPS:
         self.heading = 0            # Which direction the vehicle is heading
         self.linear_speed = 0
         self.rate_of_climb = 0      # Vertical speed (uphill)
-        
+        self.superSpeed = 0        
     def __str__(self):
        return f'Satellite Count: {self.sat_count}   Timestamp: {self.timestamp}  Latitude: {self.latitude}   Latitude Direction: {self.latitude_dir}   Longitude: {self.longitude}   Longitude Direction: {self.longitude_dir}   Heading: {self.heading}   Linear_speed: {self.linear_speed}'
 
@@ -114,10 +114,13 @@ class GPS:
                     self.longitude_dir = temp[8]
                     self.altitude = self.floatOrZero(temp[9])
                     self.heading = self.floatOrZero(temp[11])
-                    self.linear_speed = self.floatOrZero(temp[12])
+                    self.linear_speed = round(self.floatOrZero(temp[12]) * 0.5144, 6)
                     self.rate_of_climb = self.floatOrZero(temp[13])
                     
+                    self.superSpeed = self.EMA(self.linear_speed, self.superSpeed, 0.1)
+                    
                 except Exception as error:
+                    print(error)
                     errors.append( ['GPS', 'Could not unpack data'] )
                 
                 #Heading, latitude, lontitude, linear_speed
@@ -129,7 +132,11 @@ class GPS:
     
             else:
                 errors.append( ['GPS', 'Checksum doesn\'t match'] )
+    
+    def EMA( self, newSample, oldSample, alpha ):
+        return ((alpha * newSample) + (1.0-alpha) * oldSample)  
 
+    
     def floatOrZero(self,strValue):
         if (strValue != ""):
             return float(strValue)

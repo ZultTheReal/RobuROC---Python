@@ -171,7 +171,7 @@ class Interface:
         
         for i in range(4):
             
-            dataBox.grid_columnconfigure(i+1, minsize=120)
+            dataBox.grid_columnconfigure(i+1, minsize=150)
             
             # Label descripting which motor
             labelText = str(i+1)
@@ -194,7 +194,7 @@ class Interface:
         
         for i in range(5):
             
-            gpsBox.grid_columnconfigure(i, minsize=120)
+            gpsBox.grid_columnconfigure(i, minsize=150)
             
             self.gpsTitleLabel[i] = ttk.Label(gpsBox, text=gpsTitles[i], font=("Calibri", 18), foreground="white", background="black")
             self.gpsTitleLabel[i].grid(row=0, column=i, padx=5, sticky='w')

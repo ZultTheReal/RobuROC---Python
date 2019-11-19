@@ -1,5 +1,6 @@
 import serial
 import time
+import math
 from .shared import *
 
 class IMU:
@@ -62,9 +63,9 @@ class IMU:
                         
                         data = dict(item.split('=') for item in packlist)
                         
-                        self.gx = float(data["gx"])
-                        self.gy = float(data["gy"])
-                        self.gz = float(data["gz"])
+                        self.gx = float(data["gx"]) * math.pi/180.0 # Convert deg/s to rad/s
+                        self.gy = float(data["gy"]) * math.pi/180.0 # Convert deg/s to rad/s
+                        self.gz = float(data["gz"]) * math.pi/180.0 # Convert deg/s to rad/s
                         self.ax = float(data["ax"])
                         self.ay = float(data["ay"])
                         self.az = float(data["az"])

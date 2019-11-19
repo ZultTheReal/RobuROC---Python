@@ -232,7 +232,7 @@ class MotorControl:
             
         
     
-    def setRPM( self, index = 0, rpm = 0 ):
+    def setMPS( self, index = 0, rpm = 0 ):
         
         
         # Convert speed (m/s) to motor speed value

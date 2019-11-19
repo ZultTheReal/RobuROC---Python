@@ -75,7 +75,7 @@ class Compass:
                         self.data[1] = self.mx
                         self.data[2] = self.my
                         
-                        print(self.data[0], self.heading)
+                        #print(self.data[0], self.heading)
                 except Exception as error:
                     print(error)
                     errors.append( ['Compass', 'Unpack failed'] )
