@@ -1,7 +1,16 @@
 
 # Import the classes for interfacing with the RobuROC
 import system as car
+import control as con
 import time
+
+
+
+
+path = list()
+car.gui.pathSource = path
+
+
 
 car.gui.gpsDataSource = car.gps.data
 
@@ -59,6 +68,11 @@ while( car.gui.appOpen ):
     
     if time.time() - lastControl > .1:
 
+        # Calculate actual velocity
+ 
+        actualSpeed = (car.motors.actualVel[0] + car.motors.actualVel[1])/2
+
+
         lastControl = time.time()
         
         left = 0.0
@@ -76,6 +90,9 @@ while( car.gui.appOpen ):
                 right = -round(joystick[1] - joystick[0] / 4, 4)
 
         # Else control via path finding
+        else:
+            
+            left, right = con.navigation.controller.run( 0.5, 0, actualSpeed, 0)
         
         if car.motors.ready:
             car.motors.setRPM( 0 , left * car.maxSpeed )

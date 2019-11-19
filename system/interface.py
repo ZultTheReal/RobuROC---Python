@@ -3,7 +3,7 @@ from tkinter import ttk
 from .shared import *
 from datetime import datetime
 import time
-import random
+import utm
 
 # For plotting
 #import matplotlib
@@ -26,6 +26,8 @@ plotSamples = 100
 
 
 class Interface:
+    
+    pathSource = None
     
     # Defining the labels
     motorLabel = [None for x in range(4)]
@@ -66,7 +68,7 @@ class Interface:
         
     def setup(self):
         
-        self.root.geometry('1100x500')
+        self.root.geometry('1200x700')
         self.root.title(appTitle)
         self.root.configure(background='black')
         
@@ -74,7 +76,7 @@ class Interface:
         
         # Divide the root frame into two columns
         self.root.grid_rowconfigure(0, weight=1)
-        self.root.grid_columnconfigure(0, weight=1, minsize=700)
+        self.root.grid_columnconfigure(0, weight=1, minsize=800)
         self.root.grid_columnconfigure(1, weight=1)
         
 
@@ -104,10 +106,22 @@ class Interface:
         #self.graphBox = tk.Frame(leftFrame)
         #self.graphBox.configure(background='black')
         #self.graphBox.pack(pady=30)
+        
+       
 
         footerBox = tk.Frame(leftFrame)
         footerBox.configure(background='black')
         footerBox.pack(side=tk.BOTTOM, pady=20)
+        
+        # Box for inputting GPS coordinates to follow
+        pathBox = tk.Frame(leftFrame)
+        pathBox.configure(background='black')
+        pathBox.pack(side=tk.BOTTOM, pady=20)
+        
+        self.gpsInput = tk.Entry(pathBox, width=60)
+        self.gpsInput.grid(row=0, column=0, ipady=10, pady=40, padx=5, sticky='we')
+        self.gpsBtn = ttk.Button(pathBox, text="Add coordinate", command=self.addPath, style='sm.TButton')
+        self.gpsBtn.grid(row=0, column=1, ipady=3, padx=10, ipadx=10, pady=40, sticky='e')
         
         # Right frame
         
@@ -116,10 +130,15 @@ class Interface:
         rightFrame.grid(row=0,column=1, sticky="nsew")
         rightFrame.grid_columnconfigure(0, weight=1)
         rightFrame.grid_rowconfigure(0, weight=1)
+        rightFrame.grid_rowconfigure(1, weight=1)
         
         self.log = tk.Text(rightFrame)
-        self.log.pack(side=tk.LEFT, fill=tk.Y)
         self.log.grid(row=0, column=0, sticky='nsew')
+        
+        
+        self.paths = tk.Text(rightFrame)
+        self.paths.grid(row=1, column=0, sticky='nsew')
+        
         
         
         # --- App buttons ---
@@ -133,6 +152,10 @@ class Interface:
         
         self.stopBtn = ttk.Button(headerBox, command=self.pauseCar, text="Pause", style='lg.TButton')
         self.stopBtn.pack(side=tk.LEFT, padx=10)
+        
+        
+        self.controlBtn = ttk.Button(footerBox, text="Enable pathfollow", style='sm.TButton')
+        self.controlBtn.pack(side=tk.LEFT, padx=10, ipadx=10)
         
         self.gamepadBtn = ttk.Button(footerBox, command=self.toggleGamepad, text="Enable gamepad", style='sm.TButton')
         self.gamepadBtn.pack(side=tk.LEFT, padx=10, ipadx=10)
@@ -148,7 +171,7 @@ class Interface:
         
         for i in range(4):
             
-            dataBox.grid_columnconfigure(i+1, minsize=100)
+            dataBox.grid_columnconfigure(i+1, minsize=120)
             
             # Label descripting which motor
             labelText = str(i+1)
@@ -171,7 +194,7 @@ class Interface:
         
         for i in range(5):
             
-            gpsBox.grid_columnconfigure(i, minsize=100)
+            gpsBox.grid_columnconfigure(i, minsize=120)
             
             self.gpsTitleLabel[i] = ttk.Label(gpsBox, text=gpsTitles[i], font=("Calibri", 18), foreground="white", background="black")
             self.gpsTitleLabel[i].grid(row=0, column=i, padx=5, sticky='w')
@@ -179,6 +202,9 @@ class Interface:
             self.gpsDataLabel[i] = ttk.Label(gpsBox, text='0', font=("Calibri", 18), foreground="white", background="black")
             self.gpsDataLabel[i].grid(row=1, column=i, padx=5, sticky='e')
     
+    
+        gpsBox.grid_rowconfigure(0, weight=1)
+        gpsBox.grid_rowconfigure(1, weight=1)
     
         #self.setupGraph()
         
@@ -222,6 +248,34 @@ class Interface:
     
     def pauseCar(self):
         motors.pause()
+        
+        
+    def addPath(self):
+
+        coordinates = list()
+        
+        data = self.gpsInput.get()
+        self.gpsInput.delete(0,tk.END)
+        
+        items = data.split('\n')
+        
+        for i in range(len(items)):
+            
+            coordinate = items[i].split(',')
+            
+            east, north, number, zone = utm.from_latlon(float(coordinate[0]), float(coordinate[1]))
+            
+            self.pathSource.append([east, north])
+        
+        
+        for i in range(len(coordinates)):
+            string = str(i+1) + ": " + str(coordinates[i][0]) + " " + str(coordinates[i][1]) + "\n"
+            self.paths.insert(tk.END, string)
+        
+    def updatePath(self):
+        pass
+        
+        
     
     def toggleGamepad(self):
         if var.gamepadEnabled:

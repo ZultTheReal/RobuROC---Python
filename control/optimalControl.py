@@ -1,6 +1,6 @@
 import numpy as np
 
-class OptimalController:
+class OptimalControl:
 
     def __init__(self):
         self.clear()
@@ -16,7 +16,7 @@ class OptimalController:
         # self.iMap = np.array([[0,self.Ki],[self.Ki,0],[self.Ki,0], [0, self.Ki]])
 
 
-    def OptimalControl(self,velocityReference, omegaReference, velocityCurrent, omegaCurrent):
+    def run(self,velocityReference, omegaReference, velocityCurrent, omegaCurrent):
         velocityRefScaled = velocityReference * self.optGain[0][0]  # Vref*Kr(1,1)
         omegaRefScaled = omegaReference * self.optGain[1][1]        # Oref*Kr(2,2)
 
@@ -31,7 +31,9 @@ class OptimalController:
 
         wheelMapping = np.array([[WheelMappingR,WheelMappingL]])    #Collecting wheel maps in vector
 
-        return wheelMapping
+        print(wheelMapping)
+
+        return wheelMapping[0][0], wheelMapping[0][1]
 
         #currentMapping = self.iMap*wheelMapping                     # Mapping wheel speeds to motor currents (4,1)
 

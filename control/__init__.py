@@ -1,3 +1,3 @@
-from .xbox360_gamepad import Gamepad, InputMap
+from .navigation import Navigation
 
-gamepad = Gamepad()
+navigation = Navigation()
