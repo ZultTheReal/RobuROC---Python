@@ -101,14 +101,14 @@ while( car.gui.appOpen ):
                 #print("ACTUAL", car.motors.actualVel[0], car.motors.actualVel[1])
                 print( car.imu.gz )
                # if( car.gps.sat_count >= 4):
-                left, right = con.navigation.controller.run( 0, 0.1,0, -car.imu.gz) # 0.5, 0.10, car.gps.superspeed, -car.imu.gz
+                left, right = con.navigation.controller.run( 0, 0.01,0, -car.imu.gz) # 0.5, 0.10, car.gps.superspeed, -car.imu.gz
                 #print("OUTPUT", left, right )
         
         if car.motors.ready:
-            car.motors.setMPS( 0 , left )
-            car.motors.setMPS( 1 , -right )
-            car.motors.setMPS( 2 , -right )
-            car.motors.setMPS( 3 , left )
+            car.motors.setRPS( 0 , left)
+            car.motors.setRPS( 1 , -right )
+            car.motors.setRPS( 2 , -right )
+            car.motors.setRPS( 3 , left )
         
         #car.motors.setRPM( 0, 1.0 )
             

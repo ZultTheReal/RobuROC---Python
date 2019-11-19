@@ -7,8 +7,8 @@ class OptimalControl:
 
     def clear(self):
                                                                     # Settings
-        self.optGain = np.array([[2.603,0],[0,1]])          # Kr
-        self.optFeedback = np.array([[0.9379,0],[0,1]])       # F
+        self.optGain = np.array([[20.07,0],[0,74.63]])          # Kr
+        self.optFeedback = np.array([[18.41,0],[0,2.729]])       # F
         self.L = 0.538                                              #axle width
         self.wheelRadius = 0.28                                     #wheel radius
         self.vRL = np.array([[1, 1], [self.L / self.wheelRadius, -(self.L / self.wheelRadius)]])

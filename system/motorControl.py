@@ -1,5 +1,6 @@
 import canopen
 import time
+import math
 from .constants import *
 
 MODE_VELOCITY = 3
@@ -231,12 +232,18 @@ class MotorControl:
             self.controlMode = mode
             
         
+    def setRPS( self, index = 0, rad = 0):
+        
+        speed = ( rad * 60.0/(2*math.pi) ) * SCALE_VELOCITY
+        
+        self.setSpeed( index, int(speed) )
+        
     
-    def setMPS( self, index = 0, rpm = 0 ):
+    def setMPS( self, index = 0, mps = 0 ):
         
         
         # Convert speed (m/s) to motor speed value
-        speed = rpm * (SCALE_VELOCITY/SCALE_RPM_TO_MPS)
+        speed = mps * (SCALE_VELOCITY/SCALE_RPM_TO_MPS)
         #print(speed)
         self.setSpeed( index, int(speed) )
     
