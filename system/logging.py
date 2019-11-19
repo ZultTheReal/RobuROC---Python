@@ -49,7 +49,7 @@ class Logging:
         self.startLogging = False
         self.log.close()
         
-    def addMeasurements( self, pointer, titles):
+    def addMeasurements( self, pointer, titles ):
         
         self.data.append(pointer)
         

@@ -4,6 +4,8 @@ from .shared import *
 
 class IMU:
     
+    # Sensors class reads data from custom pcb with IMU and ultrasonic sensors
+    
     connected = False
     data = [0,0,0,0,0,0]
     
@@ -14,11 +16,9 @@ class IMU:
         self.ax = 0       # lateral direction (North,South)
         self.ay = 0          # Longitudinal coordinate
         self.az = 0      # Longitudinal direction (West,East)
+        self.dfront = 0
+        self.dback = 0
         
-    def __str__(self):
-        return f'gx: {self.gx}   gy: {self.gy}  gz: {self.gz}   ax: {self.ax}   ay: {self.ay}   az: {self.az}'
-
-
     def connect(self,comPort):
         try:
             self.ser = serial.Serial(
@@ -32,7 +32,7 @@ class IMU:
             self.connected = True
         except Exception as error:
             self.connected = False
-            errors.append( ['IMU', 'Not connected'] )
+            errors.append( ['Sensor', 'Not connected'] )
         
     def getData(self):
 
@@ -58,14 +58,18 @@ class IMU:
                     packlist = string.split(',')
                     strlen = len(packlist)
                     
-                    if strlen == 6:
-                        imuData = dict(item.split('=') for item in packlist)
-                        self.gx = float(imuData["gx"])
-                        self.gy = float(imuData["gy"])
-                        self.gz = float(imuData["gz"])
-                        self.ax = float(imuData["ax"])
-                        self.ay = float(imuData["ay"])
-                        self.az = float(imuData["az"])
+                    if strlen == 8:
+                        
+                        data = dict(item.split('=') for item in packlist)
+                        
+                        self.gx = float(data["gx"])
+                        self.gy = float(data["gy"])
+                        self.gz = float(data["gz"])
+                        self.ax = float(data["ax"])
+                        self.ay = float(data["ay"])
+                        self.az = float(data["az"])
+                        self.dfront = float(data["d1"])
+                        self.dback = float(data["d2"])
                         
                         self.data[0] = self.gx
                         self.data[1] = self.gy
@@ -73,7 +77,6 @@ class IMU:
                         self.data[3] = self.ax
                         self.data[4] = self.ay
                         self.data[5] = self.az
-                        
-                        return 0
-                except:
-                    return -1
+    
+                except Exception as error:
+                    errors.append( ['Sensors', 'Failed to translate string'] )
