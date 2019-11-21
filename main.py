@@ -3,6 +3,7 @@
 import system as car
 import control as con
 import time
+import math
 
 
 
@@ -98,6 +99,12 @@ while( car.gui.appOpen ):
 
                 left = left * car.maxSpeed
                 right = right * car.maxSpeed
+                
+                if car.motors.ready:
+                    car.motors.setMPS( 0 , left)
+                    car.motors.setMPS( 1 , -right )
+                    car.motors.setMPS( 2 , -right )
+                    car.motors.setMPS( 3 , left )
 
             # Else control via path finding
         
@@ -107,14 +114,20 @@ while( car.gui.appOpen ):
                 print( -car.imu.gz )
                 
                 if( car.gps.sat_count >= 4):
-                    left, right = con.navigation.controller.run( 1.0, 0.1, car.gps.superSpeed, -car.imu.gz) # 0.5, 0.10, car.gps.superspeed, -car.imu.gz
+                    
+                    tarVelocity = 1.0
+                    rotVelocity = 0.2
+                    
+                    current = con.navigation.controller.run( tarVelocity, rotVelocity, car.gps.superSpeed, -car.imu.gz) # 0.5, 0.10, car.gps.superspeed, -car.imu.gz
+                
+                    if car.motors.ready:
+                        car.motors.setCurrent( 0 , current[0])
+                        car.motors.setCurrent( 1 , -current[1])
+                        car.motors.setCurrent( 2 , -current[2])
+                        car.motors.setCurrent( 3 , current[3])
                 #print("OUTPUT", left, right )
         
-        if car.motors.ready:
-            car.motors.setRPS( 0 , left)
-            car.motors.setRPS( 1 , -right )
-            car.motors.setRPS( 2 , -right )
-            car.motors.setRPS( 3 , left )
+        
         
         #car.motors.setRPM( 0, 1.0 )
             

@@ -217,6 +217,16 @@ class MotorControl:
         else:
             raise TypeError('Unvalid speed type')
     
+    def setCurrent(self, index = 0, current = 0):
+        
+        value = current * SCALE_CURRENT
+        
+        self.setMode(MODE_CURRENT)
+        
+        data = (value).to_bytes(4, byteorder="little", signed=True)
+        self.sendCanPacket( COBID_TAR_CURRENT[index], list(data) )
+                
+    
     def setMode( self, mode ):
         
         # Control word ( enable operation )
@@ -231,7 +241,7 @@ class MotorControl:
             
             self.controlMode = mode
             
-        
+    # Set speed in Rad/s
     def setRPS( self, index = 0, rad = 0):
         
         speed = ( rad * 60.0/(2*math.pi) ) * SCALE_VELOCITY
