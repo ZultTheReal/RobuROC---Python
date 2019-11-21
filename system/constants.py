@@ -19,9 +19,9 @@ COBID_TAR_CURRENT = [0x521, 0x522, 0x523, 0x524]
 WHEEL_RADIUS = 0.28 # meter
 
 # Constants for transforming int-values read from CAN to actual values
-SCALE_CURRENT = pow(2, 13)/40 # to Amps
+SCALE_CURRENT = pow(2, 13)/40.0 # to Amps
 SCALE_VELOCITY =  ((pow(2,17)/(2*20000)*pow(2,19))/1000)*32 # To RPM
-SCALE_RPM_TO_MPS = (2*3.14)/60*WHEEL_RADIUS
+SCALE_RPM_TO_MPS = ((2.0*3.14)/60.0)*WHEEL_RADIUS
 
 COBID_SDO = [0x601, 0x602, 0x603, 0x604]
 COBID_SDO_RETURN = [0x581, 0x582, 0x583, 0x584]

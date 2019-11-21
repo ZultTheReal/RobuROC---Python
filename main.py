@@ -70,7 +70,12 @@ while( car.gui.appOpen ):
 
         # Calculate actual velocity
  
-        #actualSpeed = (car.motors.actualVel[0] + car.motors.actualVel[1])/2
+
+
+
+
+
+#actualSpeed = (car.motors.actualVel[0] + car.motors.actualVel[1])/2
         #print( "ACTUAL: ", car.motors.actualVel[0], car.motors.actualVel[1] )
 
         #print(car.imu.gz)
@@ -98,10 +103,11 @@ while( car.gui.appOpen ):
         
             elif car.gamepad.buttons()[1]:
                 #car.motors.setMPS(1, 0.5)
-                #print("ACTUAL", car.motors.actualVel[0], car.motors.actualVel[1])
-                print( car.imu.gz )
-               # if( car.gps.sat_count >= 4):
-                left, right = con.navigation.controller.run( 0, 0.01,0, -car.imu.gz) # 0.5, 0.10, car.gps.superspeed, -car.imu.gz
+                print("ACTUAL", car.motors.actualVel[0], car.motors.actualVel[1])
+                print( -car.imu.gz )
+                
+                if( car.gps.sat_count >= 4):
+                    left, right = con.navigation.controller.run( 1.0, 0.1, car.gps.superSpeed, -car.imu.gz) # 0.5, 0.10, car.gps.superspeed, -car.imu.gz
                 #print("OUTPUT", left, right )
         
         if car.motors.ready:

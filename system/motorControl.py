@@ -247,6 +247,16 @@ class MotorControl:
         #print(speed)
         self.setSpeed( index, int(speed) )
     
+    
+    def setRPM( self, index = 0, rpm = 0 ):
+        
+        
+        # Convert speed (m/s) to motor speed value
+        speed = rpm * SCALE_VELOCITY
+        #print(speed)
+        self.setSpeed( index, int(speed) )
+
+
     # --- Communication state machine functions ---
     
     def enableComm(self):
