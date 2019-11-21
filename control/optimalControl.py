@@ -47,7 +47,7 @@ class OptimalControl:
      
         capOutput = [max(min(i, 20.0), -20.0) for i in output]
         
-        print(capOutput)
+        print("CUR: ",capOutput)
      
         return capOutput
 
@@ -56,6 +56,6 @@ class OptimalControl:
         #return currentMappi
     
     
-optimal = OptimalControl()
+#optimal = OptimalControl()
 
-optimal.run(0.0, 0.6, 0.0, 0.0);
+#optimal.run(0.0, 0.6, 0.0, 0.0);

@@ -70,13 +70,8 @@ while( car.gui.appOpen ):
     if time.time() - lastControl > .05:
 
         # Calculate actual velocity
- 
 
-
-
-
-
-#actualSpeed = (car.motors.actualVel[0] + car.motors.actualVel[1])/2
+        #actualSpeed = (car.motors.actualVel[0] + car.motors.actualVel[1])/2
         #print( "ACTUAL: ", car.motors.actualVel[0], car.motors.actualVel[1] )
 
         #print(car.imu.gz)
@@ -110,27 +105,27 @@ while( car.gui.appOpen ):
         
             elif car.gamepad.buttons()[1]:
                 #car.motors.setMPS(1, 0.5)
-                print("ACTUAL", car.motors.actualVel[0], car.motors.actualVel[1])
-                print( -car.imu.gz )
+                #print("ACTUAL", car.motors.actualVel[0], car.motors.actualVel[1])
+                #print( -car.imu.gz )
                 
-                if( car.gps.sat_count >= 4):
+                if( car.gps.sat_count >= 0):
                     
-                    tarVelocity = 1.0
-                    rotVelocity = 0.2
+                    tarVelocity = 0.0
+                    rotVelocity = 0.6
                     
                     current = con.navigation.controller.run( tarVelocity, rotVelocity, car.gps.superSpeed, -car.imu.gz) # 0.5, 0.10, car.gps.superspeed, -car.imu.gz
-                
+                    print(current)
                     if car.motors.ready:
                         car.motors.setCurrent( 0 , current[0])
                         car.motors.setCurrent( 1 , -current[1])
                         car.motors.setCurrent( 2 , -current[2])
                         car.motors.setCurrent( 3 , current[3])
-                #print("OUTPUT", left, right )
-        
-        
-        
-        #car.motors.setRPM( 0, 1.0 )
-            
+            else:
+                if car.motors.ready:
+                    car.motors.setMPS( 0 , 0)
+                    car.motors.setMPS( 1 , 0 )
+                    car.motors.setMPS( 2 , 0 )
+                    car.motors.setMPS( 3 , 0 )
     # Print errors to gui log
     for i in range(0,len(car.errors)):
 

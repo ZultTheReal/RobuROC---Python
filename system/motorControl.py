@@ -219,7 +219,7 @@ class MotorControl:
     
     def setCurrent(self, index = 0, current = 0):
         
-        value = current * SCALE_CURRENT
+        value = int(current * SCALE_SETCURRENT)
         
         self.setMode(MODE_CURRENT)
         

@@ -83,7 +83,7 @@ class GPS:
 
                 # Unpack nmea string and save data in class
                 data = self.unpack(tempString)
-                print(data)
+                #print(data)
                 
 
     def checksum(self,nmea_str):
