@@ -36,31 +36,38 @@ class Navigation:
         
     def pathFollow(self, targetPosition, currentPosition, startPosition, angle):
 
-        targetPosition = np.array([targetPosition]).transpose()
-        currentPosition = np.array([currentPosition]).transpose()
-        startPosition = np.array([startPosition]).transpose()
-        
-        print( startPosition )
+        targetPosition = np.array(targetPosition)
+        currentPosition = np.array(currentPosition)
+        startPosition = np.array(startPosition)
 
         currentTrajectory = targetPosition - startPosition             #t
+
 
         if(abs(targetPosition[0])-currentPosition[0] <= self.deadzone and abs(targetPosition[1])-currentPosition[1] <= self.deadzone):  #if vehicle is close to goal, set error to 0 as to not move
             da = 0
             thetaError = 0
             return da, thetaError                            # NEEDS FIXING PLOX
 
-        P = (startPosition+((((currentPosition-startPosition).transpose())*currentTrajectory)/((currentTrajectory.transpose())*currentTrajectory))*currentTrajectory)
-        print(P)
-        norm2trajectory = math.sqrt(( np.power(currentTrajectory,2) ) + np.power(P,2))
+        t1 = (currentPosition-startPosition) @ currentTrajectory
+        t2 = (currentTrajectory @ currentTrajectory)
+    
+        P = startPosition + ( t1 / t2) * currentTrajectory
+        
+        vectorLength = targetPosition - P
+        norm2trajectory = math.sqrt( pow(vectorLength[0],2) + pow(vectorLength[1], 2))
+        
+        
         if norm2trajectory <= self.l:
             da = norm2trajectory/self.ch
         else:
             da = self.k_d
 
-        Pa = P + (da*currentTrajectory)/(math.sqrt( np.power(currentTrajectory,2) + np.power(currentTrajectory,2) ))
+        norm2t = math.sqrt( pow(currentTrajectory[0],2) + pow(currentTrajectory[1], 2))
+
+        Pa = P + (da * currentTrajectory)/norm2t
 
         Poffset = Pa - currentPosition
-        thetaRef = math.atan2(Poffset[1,0],Poffset[0,0])
+        thetaRef = math.atan2(Poffset[1],Poffset[0])
         thetaError = thetaRef - angle
 
         return da, thetaError
@@ -96,3 +103,12 @@ class Navigation:
                 nextPosition = self.pgoals[self.goalCounter]
                 return startPosition, nextPosition
 
+
+#nav = Navigation()
+
+#startPos = [559947.54, 6319407.73]
+#actualPos = [559950.54, 6319410.73]
+#targetPos = [559980.54, 6319450.73]
+
+
+#print( nav.pathFollow( targetPos, actualPos, startPos, 180.0*math.pi/180) )
