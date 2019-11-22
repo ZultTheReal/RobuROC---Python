@@ -122,10 +122,10 @@ while( car.gui.appOpen ):
                     print("N: ", path[1][0] - actualPos[0])
                     print("E: ", path[1][1] - actualPos[1])
                 
-                    velRef, rotRef = con.navigation.pathFollow(path[1], actualPos, path[0], car.compass.heading*math.pi/180)
+                    velRef, rotRef = con.navigation.pathFollow(path[1], actualPos, path[0], (car.compass.heading)*math.pi/180)
                     
                     velRef = 0.5 * velRef
-                    rotRef = 0.3 * rotRef
+                    rotRef = -0.3 * rotRef
                     print("PO", velRef, rotRef)
                     
                     speed = con.navigation.controller.run( velRef, rotRef, car.gps.superSpeed, -car.imu.gz) # 0.5, 0.10, car.gps.superspeed, -car.imu.gz
