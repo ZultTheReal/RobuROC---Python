@@ -111,15 +111,15 @@ while( car.gui.appOpen ):
                 if( car.gps.sat_count >= 0):
                     
                     tarVelocity = 0.0
-                    rotVelocity = 0.6
+                    rotVelocity = 0.2
                     
-                    current = con.navigation.controller.run( tarVelocity, rotVelocity, car.gps.superSpeed, -car.imu.gz) # 0.5, 0.10, car.gps.superspeed, -car.imu.gz
-                    print(current)
+                    left, right = con.navigation.controller.run( tarVelocity, rotVelocity, car.gps.superSpeed, -car.imu.gz) # 0.5, 0.10, car.gps.superspeed, -car.imu.gz
+
                     if car.motors.ready:
-                        car.motors.setCurrent( 0 , current[0])
-                        car.motors.setCurrent( 1 , -current[1])
-                        car.motors.setCurrent( 2 , -current[2])
-                        car.motors.setCurrent( 3 , current[3])
+                        car.motors.setRPS( 0 , left)
+                        car.motors.setRPS( 1 , -right)
+                        car.motors.setRPS( 2 , -right)
+                        car.motors.setRPS( 3 , left)
             else:
                 if car.motors.ready:
                     car.motors.setMPS( 0 , 0)
