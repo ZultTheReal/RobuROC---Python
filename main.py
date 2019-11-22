@@ -113,6 +113,8 @@ while( car.gui.appOpen ):
                     car.gps.latitude = 57.014359
                     car.gps.longitude = 9.986557
                     
+                    car.gps.superSpeed = 1.0
+                    
                     actualPos = car.gps.getUTM()
                     
                     print("Rot: ", -car.imu.gz)
@@ -121,9 +123,11 @@ while( car.gui.appOpen ):
                     print("N: ", path[1][0] - actualPos[0])
                     print("E: ", path[1][1] - actualPos[1])
                 
-                    velRef, rotRef = self.pathFollow(path[1], car.gps.getUTM(), path[0], car.compass.heading)
+                    velRef, rotRef = con.navigation.pathFollow(path[1], actualPos, path[0], car.compass.heading)
                     
-                    speed = con.navigation.controller.run( velRef, rotRef, car.gps.superSpeed, -car.imu.gz) # 0.5, 0.10, car.gps.superspeed, -car.imu.gz
+                    print(velRef, rotRef)
+                    
+                    #speed = con.navigation.controller.run( velRef, rotRef, car.gps.superSpeed, -car.imu.gz) # 0.5, 0.10, car.gps.superspeed, -car.imu.gz
 
                     if car.motors.ready:
                         car.motors.setRPS( 0 , speed[0])
@@ -149,14 +153,16 @@ while( car.gui.appOpen ):
         
         car.var.startFollowPath = False
         
-        #car.gps.latitude = 57.014359
-        #car.gps.longitude = 9.986557
+        car.gps.latitude = 57.014359
+        car.gps.longitude = 9.986557
         
         # Sample GPS start position
         start = car.gps.getUTM()
         
         # Insert the start position as start coordinate in the path list
         path.insert(0, [start[0], start[1]]) # Northing, Easting
+        
+        print(path)
         
 
 # If application is closed, kill the network

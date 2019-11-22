@@ -1,4 +1,5 @@
 import math as math
+import numpy as np
 
 from .optimalControl import OptimalControl
 
@@ -35,6 +36,12 @@ class Navigation:
         
     def pathFollow(self, targetPosition, currentPosition, startPosition, angle):
 
+        targetPosition = np.array([targetPosition]).transpose()
+        currentPosition = np.array([currentPosition]).transpose()
+        startPosition = np.array([startPosition]).transpose()
+        
+        print( startPosition )
+
         currentTrajectory = targetPosition - startPosition             #t
 
         if(abs(targetPosition[0])-currentPosition[0] <= self.deadzone and abs(targetPosition[1])-currentPosition[1] <= self.deadzone):  #if vehicle is close to goal, set error to 0 as to not move
@@ -42,15 +49,15 @@ class Navigation:
             thetaError = 0
             return da, thetaError                            # NEEDS FIXING PLOX
 
-        P = (startPosition+((((currentPosition-startPosition).transpose)*currentTrajectory)/((currentTrajectory.transpose)*currentTrajectory))*currentTrajectory)
-
-        norm2trajectory = math.sqrt((trajectory ^ 2) + P ^ 2)
+        P = (startPosition+((((currentPosition-startPosition).transpose())*currentTrajectory)/((currentTrajectory.transpose())*currentTrajectory))*currentTrajectory)
+        print(P)
+        norm2trajectory = math.sqrt(( np.power(currentTrajectory,2) ) + np.power(P,2))
         if norm2trajectory <= self.l:
             da = norm2trajectory/self.ch
         else:
             da = self.k_d
 
-        Pa = P + (da*currentTrajectory)/(math.sqrt(currentTrajectory ^ 2 + currentTrajectory^2))
+        Pa = P + (da*currentTrajectory)/(math.sqrt( np.power(currentTrajectory,2) + np.power(currentTrajectory,2) ))
 
         Poffset = Pa - currentPosition
         thetaRef = math.atan2(Poffset[1,0],Poffset[0,0])
