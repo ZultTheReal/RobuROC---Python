@@ -110,10 +110,9 @@ while( car.gui.appOpen ):
                 
                 if( car.gps.sat_count >= 0):
                     
-                    car.gps.latitude = 57.014359
-                    car.gps.longitude = 9.986557
-                    
-                    car.gps.superSpeed = 1.0
+                    #car.gps.latitude = 57.014359
+                    #car.gps.longitude = 9.986557
+                    #car.gps.superSpeed = 1.0
                     
                     actualPos = car.gps.getUTM()
                     
@@ -123,11 +122,13 @@ while( car.gui.appOpen ):
                     print("N: ", path[1][0] - actualPos[0])
                     print("E: ", path[1][1] - actualPos[1])
                 
-                    velRef, rotRef = con.navigation.pathFollow(path[1], actualPos, path[0], car.compass.heading)
+                    velRef, rotRef = con.navigation.pathFollow(path[1], actualPos, path[0], car.compass.heading*math.pi/180)
                     
-                    print(velRef, rotRef)
+                    velRef = 0.5 * velRef
+                    rotRef = 0.3 * rotRef
+                    print("PO", velRef, rotRef)
                     
-                    #speed = con.navigation.controller.run( velRef, rotRef, car.gps.superSpeed, -car.imu.gz) # 0.5, 0.10, car.gps.superspeed, -car.imu.gz
+                    speed = con.navigation.controller.run( velRef, rotRef, car.gps.superSpeed, -car.imu.gz) # 0.5, 0.10, car.gps.superspeed, -car.imu.gz
 
                     if car.motors.ready:
                         car.motors.setRPS( 0 , speed[0])
@@ -153,8 +154,8 @@ while( car.gui.appOpen ):
         
         car.var.startFollowPath = False
         
-        car.gps.latitude = 57.014359
-        car.gps.longitude = 9.986557
+        #car.gps.latitude = 57.014359
+        #car.gps.longitude = 9.986557
         
         # Sample GPS start position
         start = car.gps.getUTM()
