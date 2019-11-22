@@ -2,6 +2,7 @@ import serial
 import operator
 from functools import reduce
 import time
+import utm
 from .shared import *
 
 class GPS:
@@ -88,6 +89,13 @@ class GPS:
 
     def checksum(self,nmea_str):
         return reduce(operator.xor, map(ord, nmea_str), 0)
+    
+    def getUTM(self):
+        
+        east, north, number, zone = utm.from_latlon( self.latitude, self.longitude )
+        
+        return [east, north]
+    
     
     def unpack(self,nmea_str):
         

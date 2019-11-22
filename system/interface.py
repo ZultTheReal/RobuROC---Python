@@ -154,7 +154,7 @@ class Interface:
         self.stopBtn.pack(side=tk.LEFT, padx=10)
         
         
-        self.controlBtn = ttk.Button(footerBox, text="Enable pathfollow", style='sm.TButton')
+        self.controlBtn = ttk.Button(footerBox, command=self.startFollow, text="Start pathfollow", style='sm.TButton')
         self.controlBtn.pack(side=tk.LEFT, padx=10, ipadx=10)
         
         self.gamepadBtn = ttk.Button(footerBox, command=self.toggleGamepad, text="Enable gamepad", style='sm.TButton')
@@ -208,7 +208,9 @@ class Interface:
     
         #self.setupGraph()
         
-    
+    def startFollow(self):
+        var.startFollowPath = True
+        
     def setupGraph(self):
         
         self.graphTimeStart = time.time()
@@ -261,16 +263,21 @@ class Interface:
         
         for i in range(len(items)):
             
-            coordinate = items[i].split(',')
-            
-            east, north, number, zone = utm.from_latlon(float(coordinate[0]), float(coordinate[1]))
-            
-            self.pathSource.append([east, north])
-        
-        
-        for i in range(len(coordinates)):
-            string = str(i+1) + ": " + str(coordinates[i][0]) + " " + str(coordinates[i][1]) + "\n"
+            if items[i]:
+                coordinate = items[i].split(',')
+                
+                print(coordinate)
+                
+                east, north, number, zone = utm.from_latlon(float(coordinate[0]), float(coordinate[1]))
+                
+                self.pathSource.append([east, north])
+
+        for i in range(len(self.pathSource)):
+           #print( self.pathSource[i][0] )
+            string = str(i+1) + ": " + str(self.pathSource[i][0]) + " " + str(self.pathSource[i][1]) + "\n"
             self.paths.insert(tk.END, string)
+            
+            
         
     def updatePath(self):
         pass

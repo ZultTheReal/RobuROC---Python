@@ -10,6 +10,7 @@ class Variables:
 
     # Variables for gui to act with main
     gamepadEnabled = False
+    startFollowPath = False
     
     loggingEnabled = False
     
