@@ -110,10 +110,11 @@ while( car.gui.appOpen ):
                 
                 if( car.gps.sat_count >= 0):
                     
-                    tarVelocity = 0.0
+                    tarVelocity = 1.0
                     rotVelocity = 0.2
                     
                     print("gZ: ", -car.imu.gz)
+                    print("V: ", car.gps.superSpeed )
                     
                     speed = con.navigation.controller.run( tarVelocity, rotVelocity, car.gps.superSpeed, -car.imu.gz) # 0.5, 0.10, car.gps.superspeed, -car.imu.gz
 
@@ -124,10 +125,10 @@ while( car.gui.appOpen ):
                         car.motors.setRPS( 3 , speed[0])
             else:
                 if car.motors.ready:
-                    car.motors.setMPS( 0 , 0)
-                    car.motors.setMPS( 1 , 0 )
-                    car.motors.setMPS( 2 , 0 )
-                    car.motors.setMPS( 3 , 0 )
+                    car.motors.setCurrent( 0 , 0)
+                    car.motors.setCurrent( 1 , 0 )
+                    car.motors.setCurrent( 2 , 0 )
+                    car.motors.setCurrent( 3 , 0 )
     # Print errors to gui log
     for i in range(0,len(car.errors)):
 
