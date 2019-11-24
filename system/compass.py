@@ -70,12 +70,19 @@ class Compass:
                         my_unit = 2 * my_cen / (self.my_max - self.my_min)
                         
                         # https://arduino.stackexchange.com/questions/18625/converting-three-axis-magnetometer-to-degrees
-                        angle = 90 - math.atan2(my_unit, -mx_unit)
+                        angle = math.atan2(my_unit, mx_unit) + math.pi/2 
                         
-                        if angle < 0:
-                            angle = angle + 2 * math.pi
-                            
-                        self.heading = angle * 180.0/math.pi
+                        self.heading = (angle + math.pi) % (2 * math.pi)
+                        
+                        
+                        #if angle < 0:
+                            #angle = angle + 2 * math.pi
+                        
+                        
+                        
+                        #self.heading = angle * (180.0/math.pi)
+                        
+                        #print("Heading", self.heading)
                         
                         self.data[0] = self.heading
                         self.data[1] = self.mx

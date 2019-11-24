@@ -266,11 +266,12 @@ class Interface:
             if items[i]:
                 coordinate = items[i].split(',')
                 
-                print(coordinate)
+                #print(coordinate)
                 
                 east, north, number, zone = utm.from_latlon(float(coordinate[0]), float(coordinate[1]))
                 
                 self.pathSource.append([east, north])
+                print(self.pathSource)
 
         for i in range(len(self.pathSource)):
            #print( self.pathSource[i][0] )

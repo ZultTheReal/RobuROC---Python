@@ -10,6 +10,8 @@ class GPS:
     ser = serial.Serial()
     data = [0, 0, 0, 0, 0] #Heading, latitude, lontitude, linear_speed
     connected = False
+    
+    utmData = [0, 0]
 
     def __init__(self):
         self.clear()
@@ -127,6 +129,10 @@ class GPS:
                     self.rate_of_climb = self.floatOrZero(temp[13])
                     
                     self.superSpeed = self.EMA(self.linear_speed, self.superSpeed, 0.1)
+                    
+                    utmdat = self.getUTM()
+                    self.utmData[0] = utmdat[0]
+                    self.utmData[1] = utmdat[1]
                     
                 except Exception as error:
                     print(error)

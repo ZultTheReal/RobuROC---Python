@@ -21,8 +21,8 @@ class Navigation:
         self.followTrajectory = 1
         
         
-        self.maxAimLen = 4
-        self.minLen = 16 # Begin slowing down at this distance to aim point
+        self.maxAimLen = 2
+        self.minLen = 4 # Begin slowing down at this distance to aim point
         self.aimLenFactor = self.minLen/self.maxAimLen
         self.deadzone = 0.2
         
@@ -42,6 +42,10 @@ class Navigation:
         targetPos = np.array(targetPos)
         actualPos = np.array(actualPos)
         startPos = np.array(startPos)
+        
+        #print("TARGET",targetPos)
+        #print("ACTUAL",actualPos)
+        #print("START",startPos)
         
         # Calculate vector between target and actual postion to calculate the length
         target = targetPos - actualPos
@@ -86,21 +90,34 @@ class Navigation:
             aimRoute = aimPoint - actualPos
 
             # Calculate the angle of the aimRoute vector
-            thetaRef = self.atan360(aimRoute[1], aimRoute[0]) * 180/math.pi
+            #thetaRef = self.atan360(aimRoute[1], aimRoute[0])
             
-            print(thetaRef)
+            angle = math.atan2(aimRoute[1], aimRoute[0])
+            
+            #print("aimRoute", aimRoute )
+                        
+            thetaRef = (angle) % (2 * math.pi)
+        
+            
+            #print("thetaRef", thetaRef)
+            #print(thetaRef)
             
             # Find the error in the vehicle heading 
-            thetaError = thetaRef - heading
+            #thetaError = thetaRef - heading
             
+            # Find shortest route in degress 
+            thetaError = (thetaRef*180/math.pi - heading*180/math.pi + 540) % 360 - 180
+            thetaError = thetaError*(math.pi/180)
+            
+            print("thetaError", thetaError)
             
             with open("map/pathlog.json", "w") as file:
                 
-                start = utm.to_latlon(startPos[0], startPos[1], 32, 'U')
-                target = utm.to_latlon(targetPos[0], targetPos[1], 32, 'U')
-                actual = utm.to_latlon(actualPos[0], actualPos[1], 32, 'U')
-                orth = utm.to_latlon(orthPoint[0], orthPoint[1], 32, 'U')
-                aim = utm.to_latlon(aimPoint[0], aimPoint[1], 32, 'U')
+                start = utm.to_latlon(startPos[0], startPos[1], 32, 'V')
+                target = utm.to_latlon(targetPos[0], targetPos[1], 32, 'V')
+                actual = utm.to_latlon(actualPos[0], actualPos[1], 32, 'V')
+                orth = utm.to_latlon(orthPoint[0], orthPoint[1], 32, 'V')
+                aim = utm.to_latlon(aimPoint[0], aimPoint[1], 32, 'V')
                 
                 data = json.dumps({'start': start, 'target': target, 'actual':actual, 'orth':orth, 'aim': aim, 'heading': heading})
                 file.write(data)
@@ -153,9 +170,9 @@ class Navigation:
 
 #nav = Navigation()
 
-#utm1 = utm.from_latlon(57.014354, 9.986582)
-#utm2 = utm.from_latlon(57.014296, 9.986608)
-#utm3 = utm.from_latlon(57.014284, 9.987197)
+#utm1 = utm.from_latlon(57.014358, 9.986570)
+#utm2 = utm.from_latlon(57.014309, 9.986611)
+#utm3 = utm.from_latlon(57.014287, 9.987066)
 
 #startPos = [utm1[0], utm1[1]]
 #actualPos = [utm2[0], utm2[1]]
@@ -164,9 +181,9 @@ class Navigation:
 #targetPos = [5, 10.5]
 #startPos = [2,3]
 #actualPos = [7.5,3.5]
-# heading = 90.0
+#heading = math.pi/2
 
-#print( nav.pathFollow( startPos, targetPos, actualPos, 90.0 ) )
+#print( nav.pathFollow( startPos, targetPos, actualPos, heading ) )
 
 #print( math.atan2(0.5,-4) * 180/math.pi )
 

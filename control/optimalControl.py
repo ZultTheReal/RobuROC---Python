@@ -45,7 +45,7 @@ class OptimalControl:
      
         ratio = 1
      
-        capOutput = [max(min(i/ratio, 5.0), -5.0) for i in output]
+        capOutput = [max(min(i/ratio, 10.0), -10.0) for i in output]
         
         print("RAD/S: ",capOutput)
      
