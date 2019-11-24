@@ -1,8 +1,9 @@
 import math as math
 import numpy as np
+import utm
+import json
 
 from .optimalControl import OptimalControl
-
 
 class Navigation:
     
@@ -16,68 +17,103 @@ class Navigation:
         self.pgoals = list()                               # Trajectory goals
         self.goalCounter = 1                                        # Counter to select which goal to go to
         self.goalDistance = 0
-        self.currentPosition = 0
+        self.actualPos = 0
         self.followTrajectory = 1
         
-        self.ch = 8
-        self.k_d = 2
-        self.l = 16
+        
+        self.maxAimLen = 4
+        self.minLen = 16 # Begin slowing down at this distance to aim point
+        self.aimLenFactor = self.minLen/self.maxAimLen
         self.deadzone = 0.2
         
     def run(self, actualPosition, actualHeading, actualVel, actualRot):
         
-        startPosition, nextPosition = self.pathPlanner(actualPostion)
+        startPos, nextPosition = self.pathPlanner(actualPostion)
         
-        velRef, rotRef = self.pathFollow(nextPosition, actualPosition, startPosition, actualHeading)
+        velRef, rotRef = self.pathFollow(nextPosition, actualPosition, startPos, actualHeading)
         
         # Input to the controller
         return self.controller.run( velRef, rotRef, actualVel, actualRot)
         
         
-    def pathFollow(self, targetPosition, currentPosition, startPosition, angle):
-
-        targetPosition = np.array(targetPosition)
-        currentPosition = np.array(currentPosition)
-        startPosition = np.array(startPosition)
-
-        currentTrajectory = targetPosition - startPosition             #t
-
-
-        if(abs(targetPosition[0])-currentPosition[0] <= self.deadzone and abs(targetPosition[1])-currentPosition[1] <= self.deadzone):  #if vehicle is close to goal, set error to 0 as to not move
-            da = 0
-            thetaError = 0
-            return da, thetaError                            # NEEDS FIXING PLOX
-
-        t1 = (currentPosition-startPosition) @ currentTrajectory
-        t2 = (currentTrajectory @ currentTrajectory)
-    
-        P = startPosition + ( t1 / t2) * currentTrajectory
+    def pathFollow(self, startPos, targetPos, actualPos, heading):
         
-        vectorLength = targetPosition - P
-        norm2trajectory = math.sqrt( pow(vectorLength[0],2) + pow(vectorLength[1], 2))
+        # Convert lists to numpy arrays for easy vector calculations
+        targetPos = np.array(targetPos)
+        actualPos = np.array(actualPos)
+        startPos = np.array(startPos)
         
+        # Calculate vector between target and actual postion to calculate the length
+        target = targetPos - actualPos
+        distance = math.sqrt( pow(target[0],2) + pow(target[1], 2))
         
-        if norm2trajectory <= self.l:
-            da = norm2trajectory/self.ch
+        # If vehicle is close to targetPos, return outputs as zero
+        if(  abs(distance) <= self.deadzone ):  
+            return 0, 0
+        
+        # If not, use Helmans method to calculate movement
         else:
-            da = self.k_d
+            
+            # Calculate vector between start and the target position (the wanted route)
+            route = targetPos - startPos
 
-        norm2t = math.sqrt( pow(currentTrajectory[0],2) + pow(currentTrajectory[1], 2))
+            # Calculate the point which is orthorgonal to the route from the actualPos 
+            orthPoint = startPos + ( ((actualPos - startPos) @ route)/(route @ route)) * route
+            
+            
+            # --- Calculate the aiming point on the route ---
+            
+            # First calculate distance from orthPoint to targetPos
+            orthRoute = targetPos - orthPoint
+            distance = math.sqrt( pow(orthRoute[0],2) + pow(orthRoute[1], 2))
+            
+            # Depending on the distance, calculate the distance to next aim point
+            if distance <= self.minLen:
+                aimDistance = distance/self.aimLenFactor
+            else:
+                aimDistance = self.maxAimLen
 
-        Pa = P + (da * currentTrajectory)/norm2t
+            # Calculate the lenght of the route
+            routeLength = math.sqrt( pow(route[0],2) + pow(route[1], 2))
+            
+            # Calculate the aiming point by adding the route vector scaled by the aimDistance
+            aimPoint = orthPoint + (aimDistance * route)/routeLength
+            
 
-        Poffset = Pa - currentPosition
-        thetaRef = math.atan2(Poffset[1],Poffset[0])
-        thetaError = thetaRef - angle
+            # --- Calculate the target heading for the vehicle ---
+        
+            # First find the vector between actualPos and aimPoint
+            aimRoute = aimPoint - actualPos
 
-        return da, thetaError
+            # Calculate the angle of the aimRoute vector
+            thetaRef = self.atan360(aimRoute[1], aimRoute[0]) * 180/math.pi
+            
+            print(thetaRef)
+            
+            # Find the error in the vehicle heading 
+            thetaError = thetaRef - heading
+            
+            
+            with open("map/pathlog.json", "w") as file:
+                
+                start = utm.to_latlon(startPos[0], startPos[1], 32, 'U')
+                target = utm.to_latlon(targetPos[0], targetPos[1], 32, 'U')
+                actual = utm.to_latlon(actualPos[0], actualPos[1], 32, 'U')
+                orth = utm.to_latlon(orthPoint[0], orthPoint[1], 32, 'U')
+                aim = utm.to_latlon(aimPoint[0], aimPoint[1], 32, 'U')
+                
+                data = json.dumps({'start': start, 'target': target, 'actual':actual, 'orth':orth, 'aim': aim, 'heading': heading})
+                file.write(data)
+            
 
-    def pathPlanner(self, currentPosition):
+            return aimDistance, thetaError
+
+    def pathPlanner(self, actualPos):
 
         if self.followTrajectory == 1:
             temp = [0,0]
-            temp[0] = self.pgoals[0][self.goalCounter]-currentPosition[0]
-            temp[1] = self.pgoals[1][self.goalCounter]-currentPosition[1]
+            temp[0] = self.pgoals[0][self.goalCounter]-actualPos[0]
+            temp[1] = self.pgoals[1][self.goalCounter]-actualPos[1]
             self.goalDistance = math.sqrt(temp^2+temp^2)
 
             if self.goalDistance < 0.5:
@@ -86,29 +122,61 @@ class Navigation:
                 if self.goalCounter <= numcols:
                     
                     nextPosition = self.pgoals[self.goalCounter]
-                    startPosition = self.pgoals[self.goalCounter-1]
+                    startPos = self.pgoals[self.goalCounter-1]
                     self.goalCounter = self.goalCounter + 1
-                    return startPosition, nextPosition
+                    return startPos, nextPosition
                 
                 else:
                     
-                    nextPosition = currentPosition
-                    startPosition = self.pgoals[self.goalCounter - 1]
+                    nextPosition = actualPos
+                    startPos = self.pgoals[self.goalCounter - 1]
                     self.followTrajectory = 0
-                    return startPosition, nextPosition
+                    return startPos, nextPosition
                 
             else:
                 
-                startPosition = self.pgoals[self.goalCounter - 1]
+                startPos = self.pgoals[self.goalCounter - 1]
                 nextPosition = self.pgoals[self.goalCounter]
-                return startPosition, nextPosition
+                return startPos, nextPosition
+
+
+    # Atan2, but with output from 0 to 2*pi instead
+    def atan360(self, x,y):
+        
+        angle = math.atan2(x,y)
+        
+        if angle < 0:
+            angle = angle + 2 * math.pi
+
+        return angle
 
 
 #nav = Navigation()
 
-#startPos = [559947.54, 6319407.73]
-#actualPos = [559950.54, 6319410.73]
-#targetPos = [559980.54, 6319450.73]
+#utm1 = utm.from_latlon(57.014354, 9.986582)
+#utm2 = utm.from_latlon(57.014296, 9.986608)
+#utm3 = utm.from_latlon(57.014284, 9.987197)
+
+#startPos = [utm1[0], utm1[1]]
+#actualPos = [utm2[0], utm2[1]]
+#targetPos = [utm3[0], utm3[1]]
+
+#targetPos = [5, 10.5]
+#startPos = [2,3]
+#actualPos = [7.5,3.5]
+# heading = 90.0
+
+#print( nav.pathFollow( startPos, targetPos, actualPos, 90.0 ) )
+
+#print( math.atan2(0.5,-4) * 180/math.pi )
+
+#targetAngle = 280
+#currentAngle = -80
+#test = (targetAngle - currentAngle + 540) % 360 - 180
+
+#print(test)
 
 
-#print( nav.pathFollow( targetPos, actualPos, startPos, 180.0*math.pi/180) )
+
+#print( atan360(-0.5, -4)*180/math.pi )
+
