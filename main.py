@@ -4,15 +4,21 @@ import system as car
 import control as con
 import time
 import math
-import httpServer
+#import httpServer
 import utm
 
 import random
 
 path = list()
 
-path.append([559906.56, 6319410.08])
-path.append([559946.56, 6319410.08])
+path.append([559998.14, 6319386.08])
+path.append([560032.37, 6319383.35])
+path.append([560032.37, 6319368.05])
+path.append([559998.14, 6319368.05])
+path.append([559998.14, 6319386.08])
+
+
+con.navigation.pgoals = path
 
 car.gui.pathSource = path
 
@@ -34,44 +40,38 @@ car.gui.pathSource = path
 
 car.gui.gpsDataSource = car.gps.data
 
+
 # Tell the Logging object where from to get the log data
 
-#car.log.addMeasurements(
-#    car.motors.actualCur,
-#    ['Current 1','Current 2','Current 3','Current 4']
-#)
+car.log.addMeasurements(
+    car.motors.actualCur,
+    ['Current 1','Current 2','Current 3','Current 4']
+)
 
-#car.log.addMeasurements(
-#    car.motors.actualVel,
-#    ['Velocity 1','Velocity 2','Velocity 3','Velocity 4']
-#)
+car.log.addMeasurements(
+    car.motors.actualVel,
+    ['Velocity 1','Velocity 2','Velocity 3','Velocity 4']
+)
 
-#car.log.addMeasurements(
-#    car.gps.data,
-#    ['Heading gps', 'Latitude', 'Lontitude', 'Speed', 'Sat. count']
-#)
+car.log.addMeasurements(
+    car.gps.data,
+    ['Heading gps', 'Latitude', 'Lontitude', 'Speed', 'Sat. count']
+)
+
+car.log.addMeasurements(
+    car.imu.data,
+    ['gX', 'gY', 'gZ','aX', 'aY', 'aZ']
+)
+
+car.log.addMeasurements(
+    car.compass.data,
+    ['Heading mag', 'mX', 'mY']
+)
 
 car.log.addMeasurements(
     car.gps.utmData,
     ['Easting', 'Northing']
 )
-
-#car.log.addMeasurements(
-#    car.imu.data,
-#    ['gX', 'gY', 'gZ','aX', 'aY', 'aZ']
-#)
-
-#car.log.addMeasurements(
-#    car.compass.data,
-#    ['Heading mag', 'mX', 'mY']
-#)
-
-#car.log.addMeasurements(
-#    [gps.X, gps],
-#    ['Heading','Latitude','Longitude','LinearSpeed']
-#)
-
-
 
 car.compass.connect('COM6')
 car.gps.connect('COM13')
@@ -141,11 +141,14 @@ while( car.gui.appOpen ):
                     #car.gps.longitude = 9.986557
                     #car.gps.superSpeed = 1.0
                     
-                    actualPos = car.gps.getUTM()
-                    velRef, rotRef, actualVel, actualRot = con.Navigation.run(actualPos, car.compass.heading, car.gps.superSpeed, car.imu.gz, path)
+                    if car.gamepad.buttons()[1]:
+                    
+                        actualPos = car.gps.getUTM()
+                                       
+                        speed = con.navigation.run(actualPos, car.compass.heading, car.gps.superSpeed, car.imu.gz)
 
-                    speed = con.navigation.controller.run(velRef, rotRef, actualVel, actualRot) # 0.5, 0.10, car.gps.superspe
-
+                        #speed = con.navigation.controller.run(velRef, rotRef, actualVel, actualRot) # 0.5, 0.10, car.gps.superspe
+                    
                     #print("Heading: ", car.compass.heading )
                     #print("N: ", path[1][0] - actualPos[0])
                     #print("E: ", path[1][1] - actualPos[1])
@@ -181,8 +184,8 @@ while( car.gui.appOpen ):
         
         car.var.startFollowPath = False
         
-        #car.gps.latitude = 57.014359
-        #car.gps.longitude = 9.986557
+        car.gps.latitude = 57.014359
+        car.gps.longitude = 9.986557
         
         # Sample GPS start position
         start = car.gps.getUTM()

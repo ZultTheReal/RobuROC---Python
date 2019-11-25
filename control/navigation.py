@@ -14,7 +14,7 @@ class Navigation:
 
     def clear(self):
                                                                     # Settings
-        self.pgoals = list()                             # Trajectory goals
+        self.pgoals = None                             # Trajectory goals
         self.goalCounter = 1                                        # Counter to select which goal to go to
         self.goalDistance = 0
         self.actualPos = 0
@@ -24,29 +24,37 @@ class Navigation:
         self.maxAimLen = 2
         self.minLen = 4 # Begin slowing down at this distance to aim point
         self.aimLenFactor = self.minLen/self.maxAimLen
-        self.deadzone = 0.2
+        self.deadzone = 1
         
-    def run(self, actualPos, actualHeading, actualVel, actualRot, pgoals):
+    def run(self, actualPos, actualHeading, actualVel, actualRot):
         
-        startPos, nextPosition = self.pathPlanner(actualPos, pgoals)
+        #startPos, nextPosition = self.pathPlanner(actualPos, self.pgoals)
         
-        velRef, rotRef = self.pathFollow(nextPosition, actualPos, startPos, actualHeading)
+        print(self.pgoals)
+        
+        velRef, rotRef = self.pathFollow(actualPos, actualHeading)
+
+        print("D-test")
 
         # P controller
-        velRef = 0.3 * velRef
-        rotRef = -0.2 * rotRef
+        velRef = 0.5 * velRef
+        rotRef = -0.25 * rotRef
+
+        print(velRef,rotRef)
 
         # Input to the controller
         return self.controller.run( velRef, rotRef, actualVel, actualRot)
         
         
-    def pathFollow(self, startPos, targetPos, actualPos, heading):
+    def pathFollow(self, actualPos, heading):
         
         # Convert lists to numpy arrays for easy vector calculations
-        targetPos = np.array(targetPos)
-        actualPos = np.array(actualPos)
-        startPos = np.array(startPos)
-        
+        targetPos = np.array( self.pgoals[self.goalCounter] )
+        actualPos = np.array( actualPos )
+        startPos = np.array( self.pgoals[self.goalCounter-1] )
+ 
+        print("GOALC", self.goalCounter)
+        print("targetPos", targetPos)
         #print("TARGET",targetPos)
         #print("ACTUAL",actualPos)
         #print("START",startPos)
@@ -56,8 +64,17 @@ class Navigation:
         distance = math.sqrt( pow(target[0],2) + pow(target[1], 2))
         
         # If vehicle is close to targetPos, return outputs as zero
-        if(  abs(distance) <= self.deadzone ):  
-            return 0, 0
+        if(  abs(distance) <= self.deadzone ):
+            
+            print("A-test")
+            if self.goalCounter < len(self.pgoals) :
+                print("B-test")
+                self.goalCounter = self.goalCounter + 1
+                print("E-test", self.goalCounter)
+                return 0, 0
+            else:
+                print("C-test")
+                return 0, 0
         
         # If not, use Helmans method to calculate movement
         else:
@@ -147,6 +164,9 @@ class Navigation:
                     startPos = self.pgoals[self.goalCounter - 1] # last targetPos = new startPos
                     self.goalCounter = self.goalCounter + 1
                     return startPos, nextPosition
+                    print('jeg er her')
+                    print(startPos)
+                    print(nextPosition)
                 
                 else:
                     
