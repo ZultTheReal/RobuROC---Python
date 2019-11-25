@@ -142,17 +142,20 @@ while( car.gui.appOpen ):
                     #car.gps.superSpeed = 1.0
                     
                     actualPos = car.gps.getUTM()
-                    
-                    print("Heading: ", car.compass.heading )
+                    velRef, rotRef, actualVel, actualRot = con.Navigation.run(actualPos, car.compass.heading, car.gps.superSpeed, car.imu.gz, path)
+
+                    speed = con.navigation.controller.run(velRef, rotRef, actualVel, actualRot) # 0.5, 0.10, car.gps.superspe
+
+                    #print("Heading: ", car.compass.heading )
                     #print("N: ", path[1][0] - actualPos[0])
                     #print("E: ", path[1][1] - actualPos[1])
                 
-                    velRef, rotRef = con.navigation.pathFollow(path[0], path[1], actualPos, car.compass.heading )
+                    #velRef, rotRef = con.navigation.pathFollow(path[0], path[1], actualPos, car.compass.heading )
                     
-                    velRef = 0.3 * velRef
-                    rotRef = -0.2 * rotRef
+                    #velRef = 0.3 * velRef
+                    #rotRef = -0.2 * rotRef
                     
-                    speed = con.navigation.controller.run( velRef, rotRef, car.gps.superSpeed, car.imu.gz) # 0.5, 0.10, car.gps.superspeed, -car.imu.gz
+                    #speed = con.navigation.controller.run( velRef, rotRef, car.gps.superSpeed, car.imu.gz) # 0.5, 0.10, car.gps.superspeed, -car.imu.gz
 
                     if car.motors.ready:
                         car.motors.setRPS( 0 , speed[0])

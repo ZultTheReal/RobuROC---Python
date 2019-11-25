@@ -14,7 +14,7 @@ class Navigation:
 
     def clear(self):
                                                                     # Settings
-        self.pgoals = list()                               # Trajectory goals
+        self.pgoals = list()                             # Trajectory goals
         self.goalCounter = 1                                        # Counter to select which goal to go to
         self.goalDistance = 0
         self.actualPos = 0
@@ -26,12 +26,16 @@ class Navigation:
         self.aimLenFactor = self.minLen/self.maxAimLen
         self.deadzone = 0.2
         
-    def run(self, actualPosition, actualHeading, actualVel, actualRot):
+    def run(self, actualPos, actualHeading, actualVel, actualRot, pgoals):
         
-        startPos, nextPosition = self.pathPlanner(actualPostion)
+        startPos, nextPosition = self.pathPlanner(actualPos, pgoals)
         
-        velRef, rotRef = self.pathFollow(nextPosition, actualPosition, startPos, actualHeading)
-        
+        velRef, rotRef = self.pathFollow(nextPosition, actualPos, startPos, actualHeading)
+
+        # P controller
+        velRef = 0.3 * velRef
+        rotRef = -0.2 * rotRef
+
         # Input to the controller
         return self.controller.run( velRef, rotRef, actualVel, actualRot)
         
@@ -125,29 +129,30 @@ class Navigation:
 
             return aimDistance, thetaError
 
-    def pathPlanner(self, actualPos):
+    def pathPlanner(self, actualPos, pgoals):
 
         if self.followTrajectory == 1:
-            temp = [0,0]
-            temp[0] = self.pgoals[0][self.goalCounter]-actualPos[0]
-            temp[1] = self.pgoals[1][self.goalCounter]-actualPos[1]
-            self.goalDistance = math.sqrt(temp^2+temp^2)
+
+            temp = np.zeros((2, 1))
+            temp[0] = pgoals[0][self.goalCounter]-actualPos[0]  # Subtracting targetPos with actualPos
+            temp[1] = pgoals[1][self.goalCounter]-actualPos[1]
+            self.goalDistance = math.sqrt(pow(temp[0], 2) + pow(temp[1], 2))  # Distance vector to the target position
 
             if self.goalDistance < 0.5:
-                numcols = len(self.pgoals[0])
+                numcols = len(pgoals) + 1  # Number of columbs + 1 due to goalCounter initiated to 1
                 
                 if self.goalCounter <= numcols:
                     
-                    nextPosition = self.pgoals[self.goalCounter]
-                    startPos = self.pgoals[self.goalCounter-1]
+                    nextPosition = self.pgoals[self.goalCounter]  # Choosing the next targetPos
+                    startPos = self.pgoals[self.goalCounter - 1] # last targetPos = new startPos
                     self.goalCounter = self.goalCounter + 1
                     return startPos, nextPosition
                 
                 else:
                     
-                    nextPosition = actualPos
+                    nextPosition = actualPos                                # Out of target positions
                     startPos = self.pgoals[self.goalCounter - 1]
-                    self.followTrajectory = 0
+                    self.followTrajectory = 0                               # End of trajectories
                     return startPos, nextPosition
                 
             else:
