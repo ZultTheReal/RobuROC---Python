@@ -1,0 +1,7 @@
+Things to to:
+- Define rotation direction for magnetometer angle, check atan2(mz,-mx)?
+- Shift compass angle by +-90 degress to match atan2(y,x) output.. Or rotate magnetometer?
+
+
+Possible issues
+- aimRoute getting to small, being hard to calculate thetaRef

@@ -9,14 +9,14 @@ class OptimalControl:
     def clear(self):
                                                                     # Settings
         self.refGain = np.array([
-            [1.1031, 0],
-            [0,      41.0073]
+            [1.2, 0],
+            [0,      1.8]
         ])
         
         # Kr
         self.feedbackGain = np.array([
-            [0.6374, 0],
-            [0,      0.0112]
+            [0.3, 0],
+            [0,      0.5]
         ])
         
         self.L = 0.685                                              #axle width
@@ -43,9 +43,9 @@ class OptimalControl:
 
         output = np.matmul(self.map, errorVector)[:,0] # Pull out the first column (the only column, as the output is a vector)
      
-        ratio = 32.0
+        ratio = 1
      
-        capOutput = [max(min(i/ratio, 5.0), -5.0) for i in output]
+        capOutput = [max(min(i/ratio, 10.0), -10.0) for i in output]
         
         print("RAD/S: ",capOutput)
      
@@ -58,4 +58,4 @@ class OptimalControl:
     
 #optimal = OptimalControl()
 
-#optimal.run(0.0, 0.2, 0.0, 0.0);
+#optimal.run(1.0, 0, 0.0, 0.0);

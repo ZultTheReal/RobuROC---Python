@@ -2,6 +2,7 @@ import serial
 import operator
 from functools import reduce
 import time
+import utm
 from .shared import *
 
 class GPS:
@@ -9,6 +10,8 @@ class GPS:
     ser = serial.Serial()
     data = [0, 0, 0, 0, 0] #Heading, latitude, lontitude, linear_speed
     connected = False
+    
+    utmData = [0, 0]
 
     def __init__(self):
         self.clear()
@@ -89,6 +92,13 @@ class GPS:
     def checksum(self,nmea_str):
         return reduce(operator.xor, map(ord, nmea_str), 0)
     
+    def getUTM(self):
+        
+        east, north, number, zone = utm.from_latlon( self.latitude, self.longitude )
+        
+        return [east, north]
+    
+    
     def unpack(self,nmea_str):
         
         nmea_str = nmea_str.replace('$','') # Remove dollar sign (not needed/not to be counted in CRC)
@@ -119,6 +129,10 @@ class GPS:
                     self.rate_of_climb = self.floatOrZero(temp[13])
                     
                     self.superSpeed = self.EMA(self.linear_speed, self.superSpeed, 0.1)
+                    
+                    utmdat = self.getUTM()
+                    self.utmData[0] = utmdat[0]
+                    self.utmData[1] = utmdat[1]
                     
                 except Exception as error:
                     print(error)

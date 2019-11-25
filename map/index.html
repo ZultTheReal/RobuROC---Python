@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Simple Map</title>
+		<meta name="viewport" content="initial-scale=1.0">
+		<meta charset="utf-8">
+		<style>
+			/* Always set the map height explicitly to define the size of the div
+			 * element that contains the map. */
+			#map {
+				height: 80%;
+			}
+			/* Optional: Makes the sample page fill the window. */
+			html, body {
+				height: 100%;
+				margin: 0;
+				padding: 0;
+			}
+		</style>
+
+		<script type="text/javascript" src="jquery.min.js"></script>
+
+		<script type="text/javascript">
+
+			var car = "M17.402,0H5.643C2.526,0,0,3.467,0,6.584v34.804c0,3.116,2.526,5.644,5.643,5.644h11.759c3.116,0,5.644-2.527,5.644-5.644 V6.584C23.044,3.467,20.518,0,17.402,0z M22.057,14.188v11.665l-2.729,0.351v-4.806L22.057,14.188z M20.625,10.773 c-1.016,3.9-2.219,8.51-2.219,8.51H4.638l-2.222-8.51C2.417,10.773,11.3,7.755,20.625,10.773z M3.748,21.713v4.492l-2.73-0.349 V14.502L3.748,21.713z M1.018,37.938V27.579l2.73,0.343v8.196L1.018,37.938z M2.575,40.882l2.218-3.336h13.771l2.219,3.336H2.575z M19.328,35.805v-7.872l2.729-0.355v10.048L19.328,35.805z";
+			
+			
+			var map;
+			var mapReady = false
+
+			var route, actual, algorithm, marker, icon;
+
+			function initMap() {
+
+				start = {lat: 57.014322, lng: 9.986786}
+
+				map = new google.maps.Map(document.getElementById('map'), {
+					center: {lat: 57.014322, lng: 9.986786},
+					zoom:20,
+					mapTypeId: 'satellite'
+				});
+
+				map.setTilt(0);
+
+				icon = {
+				    path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+				    scale: 6,
+				    strokeColor: '#fff',
+				    fillColor: '#fff',
+    				strokeWeight: 4,
+				    anchor: new google.maps.Point(0, 2) // orig 10,50 back of car, 10,0 front of car, 10,25 center of car
+				};
+
+				route = new google.maps.Polyline({
+					path: [],
+					geodesic: true,
+					strokeColor: '#FF0000',
+					strokeOpacity: 1.0,
+					strokeWeight: 4
+				});
+
+				actual = new google.maps.Polyline({
+					path: [],
+					geodesic: true,
+					strokeColor: '#fff',
+					strokeOpacity: 1.0,
+					strokeWeight: 5
+				});
+
+				algorithm = new google.maps.Polyline({
+					path: [],
+					geodesic: true,
+					strokeColor: '#008acc',
+					strokeOpacity: 1,
+					strokeWeight: 4
+				});
+
+				marker = new google.maps.Marker({
+				    position: {lat: 57.014322, lng: 9.986786},
+				    icon: icon,
+				    map: map
+				});
+
+				
+
+				route.setMap(map);
+				algorithm.setMap(map);
+				actual.setMap(map);
+
+				mapReady = true
+
+			}
+
+			$(function(){
+				setInterval(function() { // this code is executed every 500 milliseconds:
+					if( mapReady ){
+
+						$.get( "pathlog.json", function( data ) {
+			
+							var routeCoordinates = [
+								{lat: data.start[0], lng: data.start[1]},
+								{lat: data.target[0], lng: data.target[1]},
+							];
+
+							//console.log(new google.maps.LatLng(data.actual[0], data.actual[1]))
+							marker.setPosition({lat: data.actual[0], lng: data.actual[1]})
+							
+							angle = 2*3.1415 - data.heading - 3.1415/2
+                        
+                        				angle = (angle + 3.1415) % (2 * 3.1415)
+
+
+							icon.rotation = angle*(180/3.1415)
+							//console.log(data.heading*(180/3.1415))
+							marker.setIcon(icon)
+
+
+							route.setPath(routeCoordinates)
+
+							var algorithmCoordinates = [
+								{lat: data.actual[0], lng: data.actual[1]},
+								{lat: data.orth[0], lng: data.orth[1]},
+								{lat: data.aim[0], lng: data.aim[1]},
+								{lat: data.actual[0], lng: data.actual[1]},
+							];
+
+							// Remove old algorithm showcase and show new
+							algorithm.setPath(algorithmCoordinates)
+
+							
+
+							// Add new gps coordinate
+							var path = actual.getPath();
+							path.push(new google.maps.LatLng(data.actual[0], data.actual[1]));
+							actual.setPath(path);
+							
+
+						}, "json" ).fail(function( data ) {
+						    console.log(data); // or whatever
+						});
+
+					}
+				}, 200);
+			});
+
+		</script>
+
+		<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCtCx5tsoww6-kfpIt6u1IBbDKGzlVxw7g&callback=initMap"
+		async defer></script>
+		
+	</head>
+	<body>
+		<div id="map"></div>
+
+		
+	</body>
+
+
+</html>

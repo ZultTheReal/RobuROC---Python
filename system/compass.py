@@ -59,7 +59,6 @@ class Compass:
 
                     if len(packlist) == 4:
     
-                        self.heading = float(packlist[0])
                         self.mx = float(packlist[1])
                         self.my = float(packlist[2])
                         self.mz = float(packlist[3])
@@ -70,8 +69,22 @@ class Compass:
                         mx_unit = 2 * mx_cen / (self.mx_max - self.mx_min)
                         my_unit = 2 * my_cen / (self.my_max - self.my_min)
                         
+                        # https://arduino.stackexchange.com/questions/18625/converting-three-axis-magnetometer-to-degrees
+                        angle = math.atan2(my_unit, mx_unit) + math.pi/2 
                         
-                        self.data[0] = math.atan2(my_unit, -mx_unit) * 180.0/math.pi
+                        self.heading = (angle + math.pi) % (2 * math.pi)
+                        
+                        
+                        #if angle < 0:
+                            #angle = angle + 2 * math.pi
+                        
+                        
+                        
+                        #self.heading = angle * (180.0/math.pi)
+                        
+                        #print("Heading", self.heading)
+                        
+                        self.data[0] = self.heading
                         self.data[1] = self.mx
                         self.data[2] = self.my
                         
