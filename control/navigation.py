@@ -7,40 +7,46 @@ from .optimalControl import OptimalControl
 
 class Navigation:
     
+    # Object for vehicle controller
     controller = OptimalControl()
+    
+    path = None # Trajectory goals
+    endReached = True
+    pathCount = 1  # Counter to select which goal to go to
+    
+    maxAimLen = 4.0  # Length from the point orthogonal to the route for which to aim
+    minAimLen = 2.0  # Minimum length as to not slow down entirely
+    deadzone = 1.0 # Deadzone, when the vehicle is within the radius of the target - change target.
+    
+    # Simpel P-controller gains (unitconversion)
+    velGain = 0.4   # velGain * maxAimLen = maxSpeed
+    rotGain = -0.25
 
     def __init__(self):
-        self.clear()
+        self.reset()
 
-    def clear(self):
-                                                                    # Settings
-        self.pgoals = None                             # Trajectory goals
-        self.goalCounter = 1                                        # Counter to select which goal to go to
-        self.goalDistance = 0
-        self.actualPos = 0
-        self.followTrajectory = 1
+    def reset(self):
+        self.path = None
+        self.pathCount = 1
+        self.endReached = True
         
+    def retry(self):
+        self.endReached = False
         
-        self.maxAimLen = 2
-        self.minLen = 4 # Begin slowing down at this distance to aim point
-        self.aimLenFactor = self.minLen/self.maxAimLen
-        self.deadzone = 1
+    def setPath(self, path):
+        self.path = path
+        
+        # Show the path on Google Map
+        self.logToMap()
         
     def run(self, actualPos, actualHeading, actualVel, actualRot):
         
-        #startPos, nextPosition = self.pathPlanner(actualPos, self.pgoals)
-        
-        print(self.pgoals)
-        
+        # Use the pathfollower algorithm to calculate desired speeds for navigating
         velRef, rotRef = self.pathFollow(actualPos, actualHeading)
 
-        print("D-test")
-
-        # P controller
-        velRef = 0.5 * velRef
-        rotRef = -0.25 * rotRef
-
-        print(velRef,rotRef)
+        # Map distance to linear speed, and map error in radians to rad/s
+        velRef = self.velGain * velRef
+        rotRef = self.rotGain * rotRef
 
         # Input to the controller
         return self.controller.run( velRef, rotRef, actualVel, actualRot)
@@ -49,176 +55,96 @@ class Navigation:
     def pathFollow(self, actualPos, heading):
         
         # Convert lists to numpy arrays for easy vector calculations
-        targetPos = np.array( self.pgoals[self.goalCounter] )
         actualPos = np.array( actualPos )
-        startPos = np.array( self.pgoals[self.goalCounter-1] )
- 
-        print("GOALC", self.goalCounter)
-        print("targetPos", targetPos)
-        #print("TARGET",targetPos)
-        #print("ACTUAL",actualPos)
-        #print("START",startPos)
+        
+        targetPos = np.array( self.path[self.pathCount] )
+        startPos = np.array( self.path[self.pathCount-1] )
         
         # Calculate vector between target and actual postion to calculate the length
         target = targetPos - actualPos
         distance = math.sqrt( pow(target[0],2) + pow(target[1], 2))
         
-        # If vehicle is close to targetPos, return outputs as zero
+        # If vehicle is close to targetPos, update the goal counter
         if(  abs(distance) <= self.deadzone ):
             
-            print("A-test")
-            if self.goalCounter < len(self.pgoals) :
-                print("B-test")
-                self.goalCounter = self.goalCounter + 1
-                print("E-test", self.goalCounter)
-                return 0, 0
+            # Check if there still are a new target
+            if self.pathCount < (len(self.path) - 1):
+
+                self.pathCount = self.pathCount + 1
+
             else:
-                print("C-test")
+                # Final goal reached, stop moving
                 return 0, 0
         
-        # If not, use Helmans method to calculate movement
+        ###### Use Helmans method to calculate movement ######
+        # Calculate vector between start and the target position (the wanted route)
+        route = targetPos - startPos
+
+        # Calculate the point which is orthorgonal to the route from the actualPos 
+        orthPoint = startPos + ( ((actualPos - startPos) @ route)/(route @ route)) * route
+        
+        
+        ###  Calculate the aiming point on the route ###
+        
+        # First calculate distance from orthPoint to targetPos
+        orthRoute = targetPos - orthPoint
+        distance = math.sqrt( pow(orthRoute[0],2) + pow(orthRoute[1], 2))
+        
+        # Depending on the distance, calculate the distance to next aim point
+        if distance < self.maxAimLen:
+            aimDistance = self.minAimLen if (distance < self.minAimLen) else distance
         else:
-            
-            # Calculate vector between start and the target position (the wanted route)
-            route = targetPos - startPos
+            aimDistance = self.maxAimLen
 
-            # Calculate the point which is orthorgonal to the route from the actualPos 
-            orthPoint = startPos + ( ((actualPos - startPos) @ route)/(route @ route)) * route
-            
-            
-            # --- Calculate the aiming point on the route ---
-            
-            # First calculate distance from orthPoint to targetPos
-            orthRoute = targetPos - orthPoint
-            distance = math.sqrt( pow(orthRoute[0],2) + pow(orthRoute[1], 2))
-            
-            # Depending on the distance, calculate the distance to next aim point
-            if distance <= self.minLen:
-                aimDistance = distance/self.aimLenFactor
-            else:
-                aimDistance = self.maxAimLen
 
-            # Calculate the lenght of the route
-            routeLength = math.sqrt( pow(route[0],2) + pow(route[1], 2))
-            
-            # Calculate the aiming point by adding the route vector scaled by the aimDistance
-            aimPoint = orthPoint + (aimDistance * route)/routeLength
-            
-
-            # --- Calculate the target heading for the vehicle ---
+        ### Calculate the target heading for the vehicle ###
+    
+        # Calculate the lenght of the route
+        routeLength = math.sqrt( pow(route[0],2) + pow(route[1], 2))
         
-            # First find the vector between actualPos and aimPoint
-            aimRoute = aimPoint - actualPos
+        # Calculate the aiming point by adding the route vector scaled by the aimDistance
+        aimPoint = orthPoint + (aimDistance * route)/routeLength
+    
+        # Find the vector between actualPos and aimPoint
+        aimRoute = aimPoint - actualPos
 
-            # Calculate the angle of the aimRoute vector
-            #thetaRef = self.atan360(aimRoute[1], aimRoute[0])
-            
-            angle = math.atan2(aimRoute[1], aimRoute[0])
-            
-            #print("aimRoute", aimRoute )
-                        
-            thetaRef = (angle) % (2 * math.pi)
+        # Calculate the angle of the aimRoute vector
+        angle = math.atan2(aimRoute[1], aimRoute[0])
         
-            
-            #print("thetaRef", thetaRef)
-            #print(thetaRef)
-            
-            # Find the error in the vehicle heading 
-            #thetaError = thetaRef - heading
-            
-            # Find shortest route in degress 
-            thetaError = (thetaRef*180/math.pi - heading*180/math.pi + 540) % 360 - 180
-            thetaError = thetaError*(math.pi/180)
-            
-            print("thetaError", thetaError)
-            
-            with open("map/pathlog.json", "w") as file:
-                
-                start = utm.to_latlon(startPos[0], startPos[1], 32, 'V')
-                target = utm.to_latlon(targetPos[0], targetPos[1], 32, 'V')
-                actual = utm.to_latlon(actualPos[0], actualPos[1], 32, 'V')
-                orth = utm.to_latlon(orthPoint[0], orthPoint[1], 32, 'V')
-                aim = utm.to_latlon(aimPoint[0], aimPoint[1], 32, 'V')
-                
-                data = json.dumps({'start': start, 'target': target, 'actual':actual, 'orth':orth, 'aim': aim, 'heading': heading})
-                file.write(data)
-            
-
-            return aimDistance, thetaError
-
-    def pathPlanner(self, actualPos, pgoals):
-
-        if self.followTrajectory == 1:
-
-            temp = np.zeros((2, 1))
-            temp[0] = pgoals[0][self.goalCounter]-actualPos[0]  # Subtracting targetPos with actualPos
-            temp[1] = pgoals[1][self.goalCounter]-actualPos[1]
-            self.goalDistance = math.sqrt(pow(temp[0], 2) + pow(temp[1], 2))  # Distance vector to the target position
-
-            if self.goalDistance < 0.5:
-                numcols = len(pgoals) + 1  # Number of columbs + 1 due to goalCounter initiated to 1
-                
-                if self.goalCounter <= numcols:
-                    
-                    nextPosition = self.pgoals[self.goalCounter]  # Choosing the next targetPos
-                    startPos = self.pgoals[self.goalCounter - 1] # last targetPos = new startPos
-                    self.goalCounter = self.goalCounter + 1
-                    return startPos, nextPosition
-                    print('jeg er her')
-                    print(startPos)
-                    print(nextPosition)
-                
-                else:
-                    
-                    nextPosition = actualPos                                # Out of target positions
-                    startPos = self.pgoals[self.goalCounter - 1]
-                    self.followTrajectory = 0                               # End of trajectories
-                    return startPos, nextPosition
-                
-            else:
-                
-                startPos = self.pgoals[self.goalCounter - 1]
-                nextPosition = self.pgoals[self.goalCounter]
-                return startPos, nextPosition
-
-
-    # Atan2, but with output from 0 to 2*pi instead
-    def atan360(self, x,y):
+        # Map atan2 angle to two pi            
+        thetaRef = (angle) % (2 * math.pi)
         
-        angle = math.atan2(x,y)
+        # Find shortest route in degress  and map to radians
+        thetaError = (thetaRef*180/math.pi - heading*180/math.pi + 540) % 360 - 180
+        thetaError = thetaError*(math.pi/180)
+    
         
-        if angle < 0:
-            angle = angle + 2 * math.pi
-
-        return angle
-
-
-#nav = Navigation()
-
-#utm1 = utm.from_latlon(57.014358, 9.986570)
-#utm2 = utm.from_latlon(57.014309, 9.986611)
-#utm3 = utm.from_latlon(57.014287, 9.987066)
-
-#startPos = [utm1[0], utm1[1]]
-#actualPos = [utm2[0], utm2[1]]
-#targetPos = [utm3[0], utm3[1]]
-
-#targetPos = [5, 10.5]
-#startPos = [2,3]
-#actualPos = [7.5,3.5]
-#heading = math.pi/2
-
-#print( nav.pathFollow( startPos, targetPos, actualPos, heading ) )
-
-#print( math.atan2(0.5,-4) * 180/math.pi )
-
-#targetAngle = 280
-#currentAngle = -80
-#test = (targetAngle - currentAngle + 540) % 360 - 180
-
-#print(test)
+        # Log the path-algorithm to Google Map
+        self.logToMap( actualPos, heading, orthPoint, aimPoint )
+        
+        return aimDistance, thetaError
 
 
+    def logToMap(self, actualPos = None, heading = None, orthPoint = None, aimPoint = None):
 
-#print( atan360(-0.5, -4)*180/math.pi )
+        route = list()
+        actual, orth, aim = None, None, None
 
+        if self.path:
+            for i in range(len(self.path)):
+                route.append( utm.to_latlon(self.path[i][0], self.path[i][1], 32, 'V') )
+
+        # Only log actual position if it is different than zero
+        if actualPos and all(i != 0 for i in actualPos):
+            actual = utm.to_latlon(actualPos[0], actualPos[1], 32, 'V')
+        
+        # Only add algorithm data if it is available
+        if orthPoint and aimPoint:
+            orth = utm.to_latlon(orthPoint[0], orthPoint[1], 32, 'V')
+            aim = utm.to_latlon(aimPoint[0], aimPoint[1], 32, 'V')
+    
+        with open("map/pathlog.json", "w") as file:
+            
+            data = json.dumps({'route': route, 'actual':actual, 'orth':orth, 'aim': aim, 'heading': heading})
+            file.write(data)
+            

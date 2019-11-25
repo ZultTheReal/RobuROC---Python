@@ -97,43 +97,44 @@
 
 						$.get( "pathlog.json", function( data ) {
 			
-							var routeCoordinates = [
-								{lat: data.start[0], lng: data.start[1]},
-								{lat: data.target[0], lng: data.target[1]},
-							];
+							var routeCoordinates = [];
 
-							//console.log(new google.maps.LatLng(data.actual[0], data.actual[1]))
-							marker.setPosition({lat: data.actual[0], lng: data.actual[1]})
-							
-							angle = 2*3.1415 - data.heading - 3.1415/2
-                        
-                        				angle = (angle + 3.1415) % (2 * 3.1415)
-
-
-							icon.rotation = angle*(180/3.1415)
-							//console.log(data.heading*(180/3.1415))
-							marker.setIcon(icon)
-
+							data.route.forEach( function(coordinate) {
+							    routeCoordinates.push({lat: coordinate[0], lng: coordinate[1]})
+							});
 
 							route.setPath(routeCoordinates)
 
-							var algorithmCoordinates = [
-								{lat: data.actual[0], lng: data.actual[1]},
-								{lat: data.orth[0], lng: data.orth[1]},
-								{lat: data.aim[0], lng: data.aim[1]},
-								{lat: data.actual[0], lng: data.actual[1]},
-							];
+							// Rotation and placement of vehicle marker
+							if( data.actual){
+								marker.setPosition({lat: data.actual[0], lng: data.actual[1]})
 
-							// Remove old algorithm showcase and show new
-							algorithm.setPath(algorithmCoordinates)
-
+								// Add new gps coordinate
+								var path = actual.getPath();
+								path.push(new google.maps.LatLng(data.actual[0], data.actual[1]));
+								actual.setPath(path);
+							}
 							
+							// Weird mapping of angle that works (yeah!)
+							angle = 2*3.1415 - data.heading - 3.1415/2
+                        	angle = (angle + 3.1415) % (2 * 3.1415)
+							icon.rotation = angle*(180/3.1415)
 
-							// Add new gps coordinate
-							var path = actual.getPath();
-							path.push(new google.maps.LatLng(data.actual[0], data.actual[1]));
-							actual.setPath(path);
-							
+							marker.setIcon(icon)
+
+
+							if (data.actual && data.orth && data.aim){
+								var algorithmCoordinates = [
+									{lat: data.actual[0], lng: data.actual[1]},
+									{lat: data.orth[0], lng: data.orth[1]},
+									{lat: data.aim[0], lng: data.aim[1]},
+									{lat: data.actual[0], lng: data.actual[1]},
+								];
+
+								// Remove old algorithm showcase and show new
+								algorithm.setPath(algorithmCoordinates)
+							}
+
 
 						}, "json" ).fail(function( data ) {
 						    console.log(data); // or whatever

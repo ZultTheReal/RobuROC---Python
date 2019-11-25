@@ -4,7 +4,7 @@ import system as car
 import control as con
 import time
 import math
-#import httpServer
+import httpServer
 import utm
 
 import random
@@ -18,27 +18,10 @@ path.append([559998.14, 6319368.05])
 path.append([559998.14, 6319386.08])
 
 
-con.navigation.pgoals = path
+con.navigation.setPath(path)
 
-car.gui.pathSource = path
-
-#utm1 = utm.from_latlon(57.014354, 9.986582)
-#utm2 = utm.from_latlon(57.014296, 9.986608)
-#utm3 = utm.from_latlon(57.014284, 9.987197)
-
-#startPos = [utm1[0], utm1[1]]
-#actualPos = [utm2[0], utm2[1]]
-#targetPos = [utm3[0], utm3[1]]
-#heading = 90.0
-
-#while(1):
-
- #   actualPos[0] += random.randint(-10,100)/200.0
-  #  actualPos[1] += random.randint(-10,50)/200.0
-   # con.navigation.pathFollow(startPos, targetPos, actualPos, heading )
-   # time.sleep(0.5)
-
-car.gui.gpsDataSource = car.gps.data
+car.gui.setPathSource(path)
+car.gui.setGpsSource(car.gps.data)
 
 
 # Tell the Logging object where from to get the log data

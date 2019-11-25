@@ -21,14 +21,10 @@ rowTitles = ['Motor','Current [A]','Velocity [m/s]']
 
 gpsTitles = ['Heading', 'Latitude', 'Lontitude', 'Speed', 'Sat. count']
 
-plotSamples = 100
-
-
 
 class Interface:
     
-    pathSource = None
-    
+
     # Defining the labels
     motorLabel = [None for x in range(4)]
     curLabel = [None for x in range(4)]
@@ -43,13 +39,9 @@ class Interface:
     gpsDataSource = None
     velDataSource = None
     curDataSource = None
+    pathDataSource = None
     
     log = None
-    
-    graphTimeStart = 0
-    lastGraphUpdate = 0
-    xAxis = [0 for x in range(plotSamples)]
-    yAxis = [0 for x in range(plotSamples)]
     
     appOpen = True
     
@@ -102,12 +94,8 @@ class Interface:
         gpsBox = tk.Frame(leftFrame)
         gpsBox.configure(background='black')
         gpsBox.pack(pady=30)
-        
-        #self.graphBox = tk.Frame(leftFrame)
-        #self.graphBox.configure(background='black')
-        #self.graphBox.pack(pady=30)
-        
-       
+    
+
 
         footerBox = tk.Frame(leftFrame)
         footerBox.configure(background='black')
@@ -138,6 +126,7 @@ class Interface:
         
         self.paths = tk.Text(rightFrame)
         self.paths.grid(row=1, column=0, sticky='nsew')
+        self.paths.config(state=tk.NORMAL) 
         
         
         
@@ -211,34 +200,6 @@ class Interface:
     def startFollow(self):
         var.startFollowPath = True
         
-    def setupGraph(self):
-        
-        self.graphTimeStart = time.time()
-        
-        self.figure = Figure(figsize=(5,4), dpi=100)
-        self.plotAnimate = self.figure.add_subplot(1,1,1)
-        
-        canvas = FigureCanvasTkAgg(self.figure, tk.Frame)
-        canvas.show()
-        canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
-        
-        
-    def updateGraph(i):
-
-        if time.time() - lastGraphUpdate >= 0.5:
-            lastGraphUpdate = time.time()
-            
-            # Shift data new data
-            self.xAxis[:] = self.xAxis[1:] + [self.xAxis[0]]
-            self.yAxis[:] = self.yAxis[1:] + [self.yAxis[0]]
-            
-            # get new data
-            self.xAxis[plotSamples] = randrange(50) #self.velDataSource[0]
-            self.yAxis[plotSamples] = time.time() - self.graphTimeStart
-            
-            self.plotAnimate.clear()
-            self.plotAnimate.plot(self.xAxis,self.yAxis)
-
     
     def addToLog(self, arg, message):
         time = datetime.now().strftime("%H:%M:%S")
@@ -246,15 +207,11 @@ class Interface:
         string = time + ' - ' + arg + ': ' + message + '\n'
     
         self.log.insert(tk.END, string)
-
     
     def pauseCar(self):
         motors.pause()
         
-        
     def addPath(self):
-
-        coordinates = list()
         
         data = self.gpsInput.get()
         self.gpsInput.delete(0,tk.END)
@@ -264,26 +221,32 @@ class Interface:
         for i in range(len(items)):
             
             if items[i]:
-                coordinate = items[i].split(',')
+                coordinate = items[i].split(',')  
+                utmData = utm.from_latlon(float(coordinate[0]), float(coordinate[1]))
                 
-                #print(coordinate)
-                
-                east, north, number, zone = utm.from_latlon(float(coordinate[0]), float(coordinate[1]))
-                
-                self.pathSource.append([east, north])
-                print(self.pathSource)
+                self.pathDataSource.append([utmData[0], utmData[1]])
 
-        for i in range(len(self.pathSource)):
-           #print( self.pathSource[i][0] )
-            string = str(i+1) + ": " + str(self.pathSource[i][0]) + " " + str(self.pathSource[i][1]) + "\n"
-            self.paths.insert(tk.END, string)
-            
-            
-        
+        self.updatePath()
+          
+    
     def updatePath(self):
-        pass
         
+        self.paths.delete(1.0,tk.END)
         
+        for i in range(len(self.pathDataSource)):
+
+            string = str(i+1) + ": " + str(self.pathDataSource[i][0]) + " " + str(self.pathDataSource[i][1]) + "\n"
+            self.paths.insert(tk.END, string)
+    
+    
+    def setPathSource(self, source):
+        self.pathDataSource = source
+        self.updatePath()
+        
+    def setGpsSource(self, source):
+        self.gpsDataSource = source
+        
+    
     
     def toggleGamepad(self):
         if var.gamepadEnabled:
@@ -319,29 +282,11 @@ class Interface:
             self.curLabel[i]['text'] = motors.actualCur[i]
           
         for i in range(5):
-            self.gpsDataLabel[i]['text'] = self.gpsDataSource[i]
+            self.gpsDataLabel[i]['text'] = round(self.gpsDataSource[i],6)
         
         self.root.update()
-        
-       # self.updateGraph()
         
     def close(self):
         self.appOpen = False
         self.root.destroy()
  
-        
-    def setLabelValue( self, row='current', value = 0, index = 0 ):
-        
-        label = None
-        if row is 'current':
-            label = self.curLabel
-        if row is 'velocity':
-            label = self.velLabel
-        
-        if label:
-            # If value is array, update how row 
-            if isinstance(value, list):
-                for i, val in enumerate(value):
-                    label[i]['text'] = str( round( val, 2) )
-            else:
-                label[index]['text'] = str( round( value, 2) )
