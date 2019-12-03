@@ -12,6 +12,7 @@ class MotorControl:
     network = None
     canReady = False
     ready = False
+    periodicEnable = False
     
     errors = []
     
@@ -37,14 +38,17 @@ class MotorControl:
     def disconnect( self ):
         
         # Make sure to kill CAN network when not using it
-
-        for i in range(4):
-            self.velPeriodic[i].stop()
-            
-        self.heartPeriodic.stop()
-
-        self.network.disconnect()
-        self.canReady = False
+        if self.periodicEnable:
+            for i in range(4):
+                self.velPeriodic[i].stop()
+                self.curPeriodic[i].stop()
+                
+            self.heartPeriodic.stop()
+            self.periodicEnable = False
+        
+        if self.canReady:
+            self.network.disconnect()
+            self.canReady = False
         
             
     def connect( self ):
@@ -62,39 +66,43 @@ class MotorControl:
                 self.canReady = False
         
     def setup(self):
-        
-        if self.ready:
-            # Stop old processes, in order to reinitiate everything
-            for i in range(4):
-                self.velPeriodic[i].stop()
-            
-            self.heartPeriodic.stop()
-            time.sleep(0.5)
-            # Now continue
             
         if self.canReady:
+
+            # Stop old processes, in order to reinitiate everything
+            if self.periodicEnable:
+                for i in range(4):
+                    self.velPeriodic[i].stop()
+                    self.curPeriodic[i].stop()
+                    
+                self.heartPeriodic.stop()
+                self.periodicEnable = False
+        
             # First reset all drives
             self.resetDrive()
-            
             time.sleep(0.5)
-            
-            self.startHeartbeat()
-            self.startPeriodic()
             
             # Setup stop deceleration limit (for smooth stop with quickStop)
             self.setDeceleration(12000000)
             
             # Enables the drives
             self.enableComm()
-            
+       
             # Enter Power Enabled
             self.switchOn()
-            
+    
             # Enter Operation Enable (ready to drive) 
             self.enableOperation()
             
+            if not self.periodicEnable:
+                self.startHeartbeat()
+                self.startPeriodic()
+                self.periodicEnable = True
+
+
             self.ready = True
         else:
+            self.ready = False
             self.errors.append( ['CAN', 'Not connected to CAN bus'] )
             
             #self.dynamicBrake()
@@ -146,7 +154,7 @@ class MotorControl:
             self.network.subscribe( COBID_ACT_CURRENT[i], self.readPeriodic)
 
         #RTR - Actual Velocity
-        for i in range(0, 4):
+        for i in range(4):
             self.velPeriodic[i] = self.network.send_periodic( COBID_ACT_VELOCITY[i], 8, .1, remote=True)
             self.network.subscribe( COBID_ACT_VELOCITY[i], self.readPeriodic)
            
@@ -189,42 +197,43 @@ class MotorControl:
             self.network.send_message( cobId, data )
         except Exception as error:
 
-            self.errors.append( ['CAN', error.args[0]] )
+            self.errors.append( ['CAN', "{:02x}".format(cobId) +':'+ str(data) + ' - ' + error.args[0]] )
             
  
     def setSpeed(self, index = 0, speed = 0):
-
-        if isinstance(speed, int):
-            # Convert speed to bytearray for sending over CAN
-            #print( "Speed: " , speed )
-            #if speed == 0:
-                # Change mode
-                #self.setMode(MODE_CURRENT)
+        if self.ready:
+            if isinstance(speed, int):
+                # Convert speed to bytearray for sending over CAN
+                #print( "Speed: " , speed )
+                #if speed == 0:
+                    # Change mode
+                    #self.setMode(MODE_CURRENT)
+                    
+                    # Set current to zero, dont use velocity
+                    #current = 0
+                    
+                    #data = (current).to_bytes(4, byteorder="little", signed=True)
+                    #self.sendCanPacket( COBID_TAR_CURRENT[index], [0] )
+                #else:
+                    
+                    # Change mode
+                self.setMode(MODE_VELOCITY)
+                    
+                data = (speed).to_bytes(4, byteorder="little", signed=True)
+                self.sendCanPacket( COBID_TAR_VELOCITY[index], list(data) )
                 
-                # Set current to zero, dont use velocity
-                #current = 0
-                
-                #data = (current).to_bytes(4, byteorder="little", signed=True)
-                #self.sendCanPacket( COBID_TAR_CURRENT[index], [0] )
-            #else:
-                
-                # Change mode
-            self.setMode(MODE_VELOCITY)
-                
-            data = (speed).to_bytes(4, byteorder="little", signed=True)
-            self.sendCanPacket( COBID_TAR_VELOCITY[index], list(data) )
-            
-        else:
-            raise TypeError('Unvalid speed type')
+            else:
+                raise TypeError('Unvalid speed type')
     
     def setCurrent(self, index = 0, current = 0):
         
-        value = int(current * SCALE_SETCURRENT)
-        
-        self.setMode(MODE_CURRENT)
-        
-        data = (value).to_bytes(4, byteorder="little", signed=True)
-        self.sendCanPacket( COBID_TAR_CURRENT[index], list(data) )
+        if self.ready:
+            value = int(current * SCALE_SETCURRENT)
+            
+            self.setMode(MODE_CURRENT)
+            
+            data = (value).to_bytes(4, byteorder="little", signed=True)
+            self.sendCanPacket( COBID_TAR_CURRENT[index], list(data) )
                 
     
     def setMode( self, mode ):
@@ -282,6 +291,7 @@ class MotorControl:
     def resetDrive(self):
         # Reset all drives with one global NMT command
         # Reset command: 0x81
+        
         self.sendCanPacket(0, [0x81, 0])
 
 

@@ -166,21 +166,13 @@ while( car.gui.appOpen ):
     if car.var.startFollowPath:
         
         car.var.startFollowPath = False
-        
-        car.gps.latitude = 57.014359
-        car.gps.longitude = 9.986557
-        
+  
         # Sample GPS start position
         start = car.gps.getUTM()
         
         # Insert the start position as start coordinate in the path list
         path.insert(0, [start[0], start[1]]) # Northing, Easting
         
-        #print(path)
-        
 
 # If application is closed, kill the network
-try:
-    car.motors.disconnect()
-except Exception as error:
-    pass
+car.motors.disconnect()
