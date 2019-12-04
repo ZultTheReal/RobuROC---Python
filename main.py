@@ -4,7 +4,7 @@ import system as car
 import control as con
 import time
 import math
-import httpServer
+#import httpServer
 import utm
 
 import random
@@ -28,13 +28,13 @@ car.gui.setGpsSource(car.gps.data)
 
 car.log.addMeasurements(
     car.motors.actualCur,
-    ['Current 1','Current 2','Current 3','Current 4']
+   ['Current 1','Current 2','Current 3','Current 4']
 )
 
-car.log.addMeasurements(
-    car.motors.actualVel,
-    ['Velocity 1','Velocity 2','Velocity 3','Velocity 4']
-)
+#car.log.addMeasurements(
+#    car.motors.actualVel,
+#    ['Velocity 1','Velocity 2','Velocity 3','Velocity 4']
+#)
 
 car.log.addMeasurements(
     car.gps.data,
@@ -46,15 +46,15 @@ car.log.addMeasurements(
     ['gX', 'gY', 'gZ','aX', 'aY', 'aZ']
 )
 
-car.log.addMeasurements(
-    car.compass.data,
-    ['Heading mag', 'mX', 'mY']
-)
+#car.log.addMeasurements(
+#    car.compass.data,
+#    ['Heading mag', 'mX', 'mY']
+#)
 
-car.log.addMeasurements(
-    car.gps.utmData,
-    ['Easting', 'Northing']
-)
+#car.log.addMeasurements(
+#    car.gps.utmData,
+#    ['Easting', 'Northing']
+#)
 
 car.compass.connect('COM6')
 car.gps.connect('COM13')
@@ -75,7 +75,7 @@ while( car.gui.appOpen ):
     car.compass.getData()
         
     if car.var.loggingEnabled:
-        car.log.update(0.05) # Log with 0.01s interval
+        car.log.update(0.01) # Log with 0.01s interval
     
     if time.time() - lastControl > .05:
 
@@ -128,8 +128,13 @@ while( car.gui.appOpen ):
                     
                         actualPos = car.gps.getUTM()
                                        
-                        speed = con.navigation.run(actualPos, car.compass.heading, car.gps.superSpeed, car.imu.gz)
-
+                        #speed = con.navigation.run(actualPos, car.compass.heading, car.gps.superSpeed, car.imu.gz)
+                         
+                        # Test step-response
+                        velRef = 0.0 # m/s
+                        rotRef = 0.5 # rad/s
+                        speed = con.navigation.controller.run( velRef, rotRef, car.gps.linear_speed, car.imu.gz)    
+                            
                         #speed = con.navigation.controller.run(velRef, rotRef, actualVel, actualRot) # 0.5, 0.10, car.gps.superspe
                     
                     #print("Heading: ", car.compass.heading )

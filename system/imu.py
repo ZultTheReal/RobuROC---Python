@@ -65,7 +65,7 @@ class IMU:
                         
                         self.gx = float(data["gx"]) * math.pi/180.0 # Convert deg/s to rad/s
                         self.gy = float(data["gy"]) * math.pi/180.0 # Convert deg/s to rad/s
-                        self.gz = float(data["gz"]) * math.pi/180.0 # Convert deg/s to rad/s
+                        self.gz = -float(data["gz"]) * math.pi/180.0 # Convert deg/s to rad/s
                         self.ax = float(data["ax"])
                         self.ay = float(data["ay"])
                         self.az = float(data["az"])
@@ -74,7 +74,7 @@ class IMU:
                         
                         self.data[0] = self.gx
                         self.data[1] = self.gy
-                        self.data[2] = self.gz
+                        self.data[2] = -self.gz
                         self.data[3] = self.ax
                         self.data[4] = self.ay
                         self.data[5] = self.az
