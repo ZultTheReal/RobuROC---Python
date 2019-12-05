@@ -10,7 +10,9 @@ nrSensors = 8
 eTol = 0.7
 
 
-class EKF: 
+class EKF:
+    data = [0.0,0.0,0.0,0.0,0.0,0.0,0.0]
+    
     def __init__(self):
         self.mu = np.zeros((nrStates,1)) # X, Y, Theta, Vb, Omega, Sl, Sr
         self.sigma = np.zeros((nrStates,nrStates))
@@ -21,6 +23,8 @@ class EKF:
         self.u = np.zeros((2,1))
         self.Sl = 0.05 # slip "sensor" left, value used to init state
         self.Sr = 0.05 # slip "sensor" right, value used to init state
+        
+        
         
 
         #State space covariance
@@ -102,6 +106,7 @@ class EKF:
 
         #predict
         self.mu = self.gFunc(self.mu,self.u)
+        #print(self.mu[4])
         self.sigma = self.G @ self.sigma @ self.G.transpose() + self.R
 
         # Correcting predicted values 
@@ -114,7 +119,9 @@ class EKF:
         self.sigma = (np.identity(nrStates) - self.K @ self.H) @ self.sigma
 
         # Correct slip since it cannot be below zero
-        self.mu[5,0],self.mu[6,0] = self.correctSlip(self.mu[5,0],self.mu[6,0]) 
+        self.mu[5,0],self.mu[6,0] = self.correctSlip(self.mu[5,0],self.mu[6,0])
+        for x in range(nrStates):
+            self.data[x] = float(self.mu[x])
 
 
 
@@ -122,6 +129,8 @@ class EKF:
 
         
     def gFunc(self,mu,u):
+      #  mu[5] = 0.0;
+      #  mu[6] = 0.0;
         return np.array([[mu[0,0] + dt*np.cos(mu[2,0])*mu[3,0]],  #x  = mu[0,0]
                          [mu[1,0] + dt*np.sin(mu[2,0])*mu[3,0]],  #y  = mu[1,0]
                          [mu[2,0] + dt*mu[4,0]],  #theta = mu[2,0]

@@ -106,7 +106,6 @@ class GPS:
         
         nmea_str = nmea_str.replace('$','') # Remove dollar sign (not needed/not to be counted in CRC)
         temp = nmea_str.split("*") #Remove checksum at end of nmea_str and save
-        
         if len(temp) is 2 and temp[1] is not '':
             
             CRC1 = int(temp[1], 16) #convert checksum to integer from hex nmea_str
@@ -121,14 +120,14 @@ class GPS:
                     self.sat_count = int(temp[3])
                     self.timestamp = self.floatOrZero(temp[4])
                     self.latitude = self.floatOrZero(temp[5]) #In format ddmm.mmmmmm
-                    self.latitude = round(int(self.latitude / 100) + (self.latitude - int(self.latitude/100.0)*100.0)/60.0,6) #latitude degree
+                    self.latitude = round(int(self.latitude / 100) + (self.latitude - int(self.latitude/100.0)*100.0)/60.0,15) #latitude degree
                     self.latitude_dir = temp[6]  
                     self.longitude = self.floatOrZero(temp[7]) #In format dddmm.mmmmmm
-                    self.longitude = round(int(self.longitude / 100) + (self.longitude - int(self.longitude/100.0)*100.0)/60.0,6) #longtitude degree
+                    self.longitude = round(int(self.longitude / 100) + (self.longitude - int(self.longitude/100.0)*100.0)/60.0,15) #longtitude degree
                     self.longitude_dir = temp[8]
                     self.altitude = self.floatOrZero(temp[9])
                     self.heading = self.floatOrZero(temp[11])
-                    self.linear_speed = round(self.floatOrZero(temp[12]) * 0.5144, 6)
+                    self.linear_speed = round(self.floatOrZero(temp[12]) * 0.5144, 15)
                     self.rate_of_climb = self.floatOrZero(temp[13])
                     
                     self.superSpeed = self.EMA(self.linear_speed, self.superSpeed, 0.1)
@@ -148,7 +147,10 @@ class GPS:
                 self.data[2] = self.longitude
                 self.data[3] = self.linear_speed
                 self.data[4] = self.sat_count
-                return 1
+                if self.sat_count != 0:
+                    return 1
+                else:
+                    return 0
     
             else:
                 errors.append( ['GPS', 'Checksum doesn\'t match'] )

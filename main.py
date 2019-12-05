@@ -4,10 +4,12 @@ import system as car
 import control as con
 import time
 import math
+
 #import httpServer
 import utm
 
 import random
+
 
 path = list()
 
@@ -31,10 +33,11 @@ car.log.addMeasurements(
    ['Current 1','Current 2','Current 3','Current 4']
 )
 
-#car.log.addMeasurements(
-#    car.motors.actualVel,
-#    ['Velocity 1','Velocity 2','Velocity 3','Velocity 4']
-#)
+car.log.addMeasurements(
+   car.motors.actualVel,
+   ['Velocity 1','Velocity 2','Velocity 3','Velocity 4']
+)
+
 
 car.log.addMeasurements(
     car.gps.data,
@@ -45,6 +48,18 @@ car.log.addMeasurements(
     car.imu.data,
     ['gX', 'gY', 'gZ','aX', 'aY', 'aZ']
 )
+
+
+car.log.addMeasurements(
+    con.EKF.data,
+    ['EKF_X','EKF_Y', 'EKF_Theta', 'EKF_Vb', 'EKF_Omega', 'EKF_Sl', 'EKF_Sr']
+)
+
+car.log.addMeasurements(
+    con.navigation.controller.data,
+    ['Ref_l','Ref_r']
+    )
+
 
 #car.log.addMeasurements(
 #    car.compass.data,
@@ -136,8 +151,8 @@ while( car.gui.appOpen ):
                     if car.gamepad.buttons()[1]:
                     
                         actualPos = car.gps.getUTM()
-                        con.EKF.updateEKF((car.motors.actualVel[0] + car.motors.actualVel[3])/2,
-                                           (car.motors.actualVel[1] + car.motors.actualVel[2])/2,
+                        con.EKF.updateEKF((car.motors.actualVel[0] + car.motors.actualVel[3])/(2*car.WHEEL_RADIUS),
+                                           (car.motors.actualVel[1] + car.motors.actualVel[2])/(2*car.WHEEL_RADIUS),
                                               actualPos[0], actualPos[1], car.compass.heading, #angle to be replaced with gps angle
                                               car.compass.heading, car.gps.linear_speed, car.imu.gz, gpsAvailble)
                                        
@@ -146,8 +161,14 @@ while( car.gui.appOpen ):
                         # Test step-response
                         velRef = 1 # m/s
                         rotRef = 0 # rad/s
-                        speed = con.navigation.controller.run(velRef, rotRef, float(con.EKF.mu[3]), float(con.EKF.mu[4]))    
-                            
+                        speed = con.navigation.controller.run(velRef, rotRef, float(con.EKF.mu[3]), float(con.EKF.mu[4]))
+                        #print("GPS:", gpsAvailble)
+                        #print("EKF SPEED: ", con.EKF.mu[3])
+                        #print("EKF ANG SPEED: ", con.EKF.mu[4])
+                        #print("SL and SR: ", con.EKF.mu[5], con.EKF.mu[6])
+                        #print("wheel sppeed", car.motors.actualVel)
+                        #print("Data EKF: " ,con.EKF.data)
+                        #print("Data GPS: " ,car.gps.data)
                         #speed = con.navigation.controller.run(velRef, rotRef, actualVel, actualRot) # 0.5, 0.10, car.gps.superspe
                     
                         #print("Omega: ", car.imu.gz )

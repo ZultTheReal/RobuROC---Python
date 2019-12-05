@@ -2,15 +2,15 @@ import numpy as np
 import math
 
 class OptimalControl:
-
+    data = [0.0,0.0]
     def __init__(self):
         self.clear()
 
     def clear(self):
                                                                     # Settings
         self.refGain = np.array([
-            [1, 0],
-            [0,      1.9795]
+            [2*1, 0],
+            [0,      1/2 *1.9795]
         ])
         
         # Kr
@@ -48,6 +48,9 @@ class OptimalControl:
         capOutput = [max(min(i/ratio, 10.0), -10.0) for i in output]
         
         #print("RAD/S: ",capOutput)
+        
+        for x in range(2):
+            self.data[x] = capOutput[x]
      
         return capOutput
 
