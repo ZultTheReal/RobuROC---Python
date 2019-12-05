@@ -73,6 +73,7 @@ class GPS:
             self.connected = True
         except Exception as error:
             self.connected = False
+            return 0
         
         if self.connected:
             
@@ -85,8 +86,10 @@ class GPS:
             if tempString != '':
 
                 # Unpack nmea string and save data in class
-                data = self.unpack(tempString)
+                gpsData = self.unpack(tempString)
+                return gpsData
                 #print(data)
+            return 0
                 
 
     def checksum(self,nmea_str):
@@ -137,6 +140,7 @@ class GPS:
                 except Exception as error:
                     print(error)
                     errors.append( ['GPS', 'Could not unpack data'] )
+                    return 0
                 
                 #Heading, latitude, lontitude, linear_speed
                 self.data[0] = self.heading
@@ -144,9 +148,11 @@ class GPS:
                 self.data[2] = self.longitude
                 self.data[3] = self.linear_speed
                 self.data[4] = self.sat_count
+                return 1
     
             else:
                 errors.append( ['GPS', 'Checksum doesn\'t match'] )
+                return 0
     
     def EMA( self, newSample, oldSample, alpha ):
         return ((alpha * newSample) + (1.0-alpha) * oldSample)  

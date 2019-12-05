@@ -9,22 +9,22 @@ class OptimalControl:
     def clear(self):
                                                                     # Settings
         self.refGain = np.array([
-            [1.2, 0],
-            [0,      1.8]
+            [1, 0],
+            [0,      1.9795]
         ])
         
         # Kr
         self.feedbackGain = np.array([
-            [0.3, 0],
-            [0,      0.5]
+            [0.9764, 0],
+            [0,      0.2712]
         ])
         
         self.L = 0.685                                              #axle width
         self.r = 0.28                                     #wheel radius
         
         self.map = np.array([
-            [1/self.r, 1/(2*self.r)],
-            [1/self.r, -1/(2*self.r)]
+            [1/self.r, self.L/(2*self.r)],
+            [1/self.r, -self.L/(2*self.r)]
         ])
 
     def run(self,velocityReference, omegaReference, velocityActual, omegaActual):
@@ -47,7 +47,7 @@ class OptimalControl:
      
         capOutput = [max(min(i/ratio, 10.0), -10.0) for i in output]
         
-        print("RAD/S: ",capOutput)
+        #print("RAD/S: ",capOutput)
      
         return capOutput
 

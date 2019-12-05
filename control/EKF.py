@@ -1,6 +1,6 @@
 import numpy as np
 from numpy.linalg import inv
-import math
+#import math
 
 WHEEL_RADIUS = 0.28 # meter
 WIDTH_CAR = 0.69 # meter
@@ -174,63 +174,63 @@ class EKF:
 
 
 
-def testKalmann(EKF): #only testcode, not to be used 
-    import csv
-    import matplotlib.pyplot as plt
-
-    reader = csv.reader(open("M_tab.csv", "rt"), delimiter=",")
-    data = list(reader)
-    rows = len(data)
-    collums = len(data[0])
-    #print(rows,collums)
-    #print(data[0])
-
-    EKF.set_Init(float(data[1][2]),float(data[1][3]),float(data[1][5]))
-
-    x = list(EKF.mu[0])
-    y = list(EKF.mu[1])
-    theta= list(EKF.mu[2])
-    Vb = list(EKF.mu[3])
-    omega = list(EKF.mu[4])
-    Sl = list(EKF.mu[5])
-    Sr = list(EKF.mu[6])
-
-
-    for k in range(2,rows):
-        if float(data[k][4]) == 1.5707963268:
-            gpsAvailble = 0
-        else:
-            gpsAvailble = 1
-        EKF.updateEKF( float(data[k][0]),float(data[k][1]),float(data[k][2]),float(data[k][3]),float(data[k][4]),float(data[k][5]),float(data[k][6]),float(data[k][7]),gpsAvailble  )
-        #plt.plot(EKF.mu[0],EKF.mu[1])
-        x.append(float(EKF.mu[0]))x
-        y.append(float(EKF.mu[1]))
-        theta.append(float(EKF.mu[2]))
-        Vb.append(float(EKF.mu[3]))
-        omega.append(float(EKF.mu[4]))
-        Sl.append(float(EKF.mu[5]))
-        Sr.append(float(EKF.mu[6]))
-
-
-    plt.figure(1)
-    plt.subplot(3,2,(1,3))
-    plt.plot(x,y)
-
-
-    plt.subplot(3,2,2)
-    plt.plot(theta)
-
-    plt.subplot(3,2,4)
-    plt.plot(Vb)
-
-    plt.subplot(3,2,6)
-    plt.plot(omega)
-
-    plt.subplot(3,2,5)
-    plt.plot(Sl)
-    plt.plot(Sr)
-    plt.show()
-
-#Testcode
-#EKF = EKF()
-#testKalmann(EKF)
+# def testKalmann(EKF): #only testcode, not to be used 
+#     import csv
+#     import matplotlib.pyplot as plt
+# 
+#     reader = csv.reader(open("M_tab.csv", "rt"), delimiter=",")
+#     data = list(reader)
+#     rows = len(data)
+#     collums = len(data[0])
+#     #print(rows,collums)
+#     #print(data[0])
+# 
+#     EKF.set_Init(float(data[1][2]),float(data[1][3]),float(data[1][5]))
+# 
+#     x = list(EKF.mu[0])
+#     y = list(EKF.mu[1])
+#     theta= list(EKF.mu[2])
+#     Vb = list(EKF.mu[3])
+#     omega = list(EKF.mu[4])
+#     Sl = list(EKF.mu[5])
+#     Sr = list(EKF.mu[6])
+# 
+# 
+#     for k in range(2,rows):
+#         if float(data[k][4]) == 1.5707963268:
+#             gpsAvailble = 0
+#         else:
+#             gpsAvailble = 1
+#         EKF.updateEKF( float(data[k][0]),float(data[k][1]),float(data[k][2]),float(data[k][3]),float(data[k][4]),float(data[k][5]),float(data[k][6]),float(data[k][7]),gpsAvailble  )
+#         #plt.plot(EKF.mu[0],EKF.mu[1])
+#         x.append(float(EKF.mu[0]))
+#         y.append(float(EKF.mu[1]))
+#         theta.append(float(EKF.mu[2]))
+#         Vb.append(float(EKF.mu[3]))
+#         omega.append(float(EKF.mu[4]))
+#         Sl.append(float(EKF.mu[5]))
+#         Sr.append(float(EKF.mu[6]))
+# 
+# 
+#     plt.figure(1)
+#     plt.subplot(3,2,(1,3))
+#     plt.plot(x,y)
+# 
+# 
+#     plt.subplot(3,2,2)
+#     plt.plot(theta)
+# 
+#     plt.subplot(3,2,4)
+#     plt.plot(Vb)
+# 
+#     plt.subplot(3,2,6)
+#     plt.plot(omega)
+# 
+#     plt.subplot(3,2,5)
+#     plt.plot(Sl)
+#     plt.plot(Sr)
+#     plt.show()
+# 
+# #Testcode
+# EKF = EKF()
+# testKalmann(EKF)

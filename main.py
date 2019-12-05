@@ -59,6 +59,15 @@ car.log.addMeasurements(
 car.compass.connect('COM6')
 car.gps.connect('COM13')
 car.imu.connect('COM14')
+
+gpsAvailble = car.gps.getData() # remeber that this should run untill first gps posistion
+car.imu.getData()
+car.compass.getData()
+actualPos = car.gps.getUTM()
+
+con.EKF.set_Init(actualPos[0],actualPos[1],car.compass.heading) #init kalman with x, y and theta
+
+
     
 lastControl = 0
 
@@ -70,7 +79,7 @@ while( car.gui.appOpen ):
     
     car.gui.update()
     
-    car.gps.getData()
+    gpsAvailble = car.gps.getData()
     car.imu.getData()
     car.compass.getData()
         
@@ -127,17 +136,22 @@ while( car.gui.appOpen ):
                     if car.gamepad.buttons()[1]:
                     
                         actualPos = car.gps.getUTM()
+                        con.EKF.updateEKF((car.motors.actualVel[0] + car.motors.actualVel[3])/2,
+                                           (car.motors.actualVel[1] + car.motors.actualVel[2])/2,
+                                              actualPos[0], actualPos[1], car.compass.heading, #angle to be replaced with gps angle
+                                              car.compass.heading, car.gps.linear_speed, car.imu.gz, gpsAvailble)
                                        
                         #speed = con.navigation.run(actualPos, car.compass.heading, car.gps.superSpeed, car.imu.gz)
                          
                         # Test step-response
-                        velRef = 0.0 # m/s
-                        rotRef = 0.5 # rad/s
-                        speed = con.navigation.controller.run( velRef, rotRef, car.gps.linear_speed, car.imu.gz)    
+                        velRef = 1 # m/s
+                        rotRef = 0 # rad/s
+                        speed = con.navigation.controller.run(velRef, rotRef, float(con.EKF.mu[3]), float(con.EKF.mu[4]))    
                             
                         #speed = con.navigation.controller.run(velRef, rotRef, actualVel, actualRot) # 0.5, 0.10, car.gps.superspe
                     
-                    #print("Heading: ", car.compass.heading )
+                        #print("Omega: ", car.imu.gz )
+                        #print("Velocity: ", car.gps.superSpeed )
                     #print("N: ", path[1][0] - actualPos[0])
                     #print("E: ", path[1][1] - actualPos[1])
                 
