@@ -150,12 +150,12 @@ class MotorControl:
     def startPeriodic(self):
         #RTR - Actual Current
         for i in range(4):
-            self.curPeriodic[i] = self.network.send_periodic( COBID_ACT_CURRENT[i], 8, .1, remote=True)
+            self.curPeriodic[i] = self.network.send_periodic( COBID_ACT_CURRENT[i], 8, .05, remote=True)
             self.network.subscribe( COBID_ACT_CURRENT[i], self.readPeriodic)
 
         #RTR - Actual Velocity
         for i in range(4):
-            self.velPeriodic[i] = self.network.send_periodic( COBID_ACT_VELOCITY[i], 8, .1, remote=True)
+            self.velPeriodic[i] = self.network.send_periodic( COBID_ACT_VELOCITY[i], 8, .05, remote=True)
             self.network.subscribe( COBID_ACT_VELOCITY[i], self.readPeriodic)
            
         # SDO - Temperature 
