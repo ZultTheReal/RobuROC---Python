@@ -33,8 +33,8 @@ class EKF:
                            [0,      0,      1e-7,   0,      0,      0,      0], #Theta
                            [0,      0,      0,      1e-7,   0,      0,      0], #Vb
                            [0,      0,      0,      0,      1e-5,   0,      0], #Omega
-                           [0,      0,      0,      0,      0,      1e-7,   0], #Sl
-                           [0,      0,      0,      0,      0,      0,      1e-7]]) #Sr 
+                           [0,      0,      0,      0,      0,      1e-4,   0], #Sl
+                           [0,      0,      0,      0,      0,      0,      1e-4]]) #Sr 
 
         #Sensor covariance
         self.Q = np.array([[1e-5,   0,      0,      0,      0,      0,      0,      0],  # X_gps
@@ -43,8 +43,8 @@ class EKF:
                            [0,      0,      0,      1e-7,   0,      0,      0,      0], #Theta_mag
                            [0,      0,      0,      0,      1e-4,   0,      0,      0],  #V_gps
                            [0,      0,      0,      0,      0,      1e-7,   0,      0], #Omega_gyro
-                           [0,      0,      0,      0,      0,      0,      1e-1,   0], #Sl
-                           [0,      0,      0,      0,      0,      0,      0,      1e-1]]) #Sr 
+                           [0,      0,      0,      0,      0,      0,      1e2,   0], #Sl
+                           [0,      0,      0,      0,      0,      0,      0,      1e2]]) #Sr 
 
     def set_Init(self,gpsX,gpsY,magTheta):
         self.mu = np.array([[gpsX],[gpsY],[magTheta],[0],[0],[self.Sl],[self.Sr]]) #Init mu with expected values 
@@ -52,7 +52,7 @@ class EKF:
         return
 
     def slipSens(self,omegaLw,omegaRw,V_gps,Omega_gyro, gpsAvailble): #Calculate estimated "sensor" slip
-        if (abs(V_gps) > 0.1) and (gpsAvailble == 1):
+        if ((gpsAvailble == 1) and (V_gps > 0.3) and (abs(omegaLw) > 0.2) and (abs(omegaRw) > 0.2)):
             Sl = (1 - (2* V_gps - Omega_gyro* WIDTH_CAR)/(2*WHEEL_RADIUS*omegaLw))
             Sr = (1 - (2* V_gps + Omega_gyro* WIDTH_CAR)/(2*WHEEL_RADIUS*omegaRw))
             Sl, Sr = self.correctSlip(Sl,Sr)
@@ -129,8 +129,6 @@ class EKF:
 
         
     def gFunc(self,mu,u):
-      #  mu[5] = 0.0;
-      #  mu[6] = 0.0;
         return np.array([[mu[0,0] + dt*np.cos(mu[2,0])*mu[3,0]],  #x  = mu[0,0]
                          [mu[1,0] + dt*np.sin(mu[2,0])*mu[3,0]],  #y  = mu[1,0]
                          [mu[2,0] + dt*mu[4,0]],  #theta = mu[2,0]
@@ -186,16 +184,16 @@ class EKF:
 # def testKalmann(EKF): #only testcode, not to be used 
 #     import csv
 #     import matplotlib.pyplot as plt
-# 
+
 #     reader = csv.reader(open("M_tab.csv", "rt"), delimiter=",")
 #     data = list(reader)
 #     rows = len(data)
 #     collums = len(data[0])
 #     #print(rows,collums)
 #     #print(data[0])
-# 
+
 #     EKF.set_Init(float(data[1][2]),float(data[1][3]),float(data[1][5]))
-# 
+
 #     x = list(EKF.mu[0])
 #     y = list(EKF.mu[1])
 #     theta= list(EKF.mu[2])
@@ -203,10 +201,12 @@ class EKF:
 #     omega = list(EKF.mu[4])
 #     Sl = list(EKF.mu[5])
 #     Sr = list(EKF.mu[6])
-# 
-# 
+#     gpsAvail = [0]
+#     slipSensVal = [(0,0,0)]
+
+
 #     for k in range(2,rows):
-#         if float(data[k][4]) == 1.5707963268:
+#         if abs(float(data[k][6]))  < 0.3:
 #             gpsAvailble = 0
 #         else:
 #             gpsAvailble = 1
@@ -219,27 +219,43 @@ class EKF:
 #         omega.append(float(EKF.mu[4]))
 #         Sl.append(float(EKF.mu[5]))
 #         Sr.append(float(EKF.mu[6]))
-# 
-# 
+#         gpsAvail.append(gpsAvailble)
+#         slipSensVal.append(EKF.slipSens(float(data[k][0]),float(data[k][1]),float(data[k][6]),float(data[k][7]), gpsAvailble))
+
+
 #     plt.figure(1)
 #     plt.subplot(3,2,(1,3))
 #     plt.plot(x,y)
-# 
-# 
+
+
 #     plt.subplot(3,2,2)
 #     plt.plot(theta)
-# 
+
 #     plt.subplot(3,2,4)
 #     plt.plot(Vb)
-# 
+
 #     plt.subplot(3,2,6)
 #     plt.plot(omega)
-# 
+
 #     plt.subplot(3,2,5)
 #     plt.plot(Sl)
 #     plt.plot(Sr)
+
+#     plt.figure(2)
+    
+
+#     slSens = [row[0] for row in slipSensVal]
+#     srSens  = [row[1] for row in slipSensVal]
+#     moving = [row[2] for row in slipSensVal]
+
+#     plt.plot(gpsAvail, label="GPSAvail")
+#     plt.plot(slSens, label="slSens")
+#     plt.plot(srSens, label="srSens")
+#     plt.plot(moving,label="moving")
+#     plt.legend()
 #     plt.show()
-# 
+
+
 # #Testcode
 # EKF = EKF()
 # testKalmann(EKF)
