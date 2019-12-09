@@ -21,26 +21,26 @@ class EKF:
         self.K = np.zeros((nrStates,nrSensors))
         self.z = np.zeros((nrSensors,1))
         self.u = np.zeros((2,1))
-        self.Sl = 0.05 # slip "sensor" left, value used to init state
-        self.Sr = 0.05 # slip "sensor" right, value used to init state
+        self.Sl = 0.00 # slip "sensor" left, value used to init state
+        self.Sr = 0.00 # slip "sensor" right, value used to init state
         
         
         
 
         #State space covariance
-        self.R = np.array([[1e-7,   0,      0,      0,      0,      0,      0], #X
-                           [0,      1e-7,   0,      0,      0,      0,      0], #Y
-                           [0,      0,      1e-7,   0,      0,      0,      0], #Theta
-                           [0,      0,      0,      1e-7,   0,      0,      0], #Vb
+        self.R = np.array([[1e-11,   0,      0,      0,      0,      0,      0], #X
+                           [0,      1e-11,   0,      0,      0,      0,      0], #Y
+                           [0,      0,      1e-8,   0,      0,      0,      0], #Theta
+                           [0,      0,      0,      1e-5,   0,      0,      0], #Vb
                            [0,      0,      0,      0,      1e-5,   0,      0], #Omega
-                           [0,      0,      0,      0,      0,      1e-4,   0], #Sl
-                           [0,      0,      0,      0,      0,      0,      1e-4]]) #Sr 
+                           [0,      0,      0,      0,      0,      1e-2,   0], #Sl
+                           [0,      0,      0,      0,      0,      0,      1e-2]]) #Sr 
 
         #Sensor covariance
-        self.Q = np.array([[1e-5,   0,      0,      0,      0,      0,      0,      0],  # X_gps
-                           [0,      1e-5,   0,      0,      0,      0,      0,      0],  #Y_gps
+        self.Q = np.array([[1e-7,   0,      0,      0,      0,      0,      0,      0],  # X_gps
+                           [0,      1e-7,   0,      0,      0,      0,      0,      0],  #Y_gps
                            [0,      0,      1e-2,   0,      0,      0,      0,      0],  #Theta_gps
-                           [0,      0,      0,      1e-7,   0,      0,      0,      0], #Theta_mag
+                           [0,      0,      0,      1e-8,   0,      0,      0,      0], #Theta_mag
                            [0,      0,      0,      0,      1e-4,   0,      0,      0],  #V_gps
                            [0,      0,      0,      0,      0,      1e-7,   0,      0], #Omega_gyro
                            [0,      0,      0,      0,      0,      0,      1e2,   0], #Sl
@@ -184,6 +184,7 @@ class EKF:
 # def testKalmann(EKF): #only testcode, not to be used 
 #     import csv
 #     import matplotlib.pyplot as plt
+#     import timeit
 
 #     reader = csv.reader(open("M_tab.csv", "rt"), delimiter=",")
 #     data = list(reader)
@@ -203,13 +204,19 @@ class EKF:
 #     Sr = list(EKF.mu[6])
 #     gpsAvail = [0]
 #     slipSensVal = [(0,0,0)]
-
+#     elapsed = [0]
 
 #     for k in range(2,rows):
+#         start_time = timeit.default_timer()
 #         if abs(float(data[k][6]))  < 0.3:
 #             gpsAvailble = 0
 #         else:
 #             gpsAvailble = 1
+
+#         if abs(float(data[k][0])) < 0.1:
+#             data[k][0] = 0.0
+#         if abs(float(data[k][1])) < 0.1:
+#             data[k][1] = 0.0
 #         EKF.updateEKF( float(data[k][0]),float(data[k][1]),float(data[k][2]),float(data[k][3]),float(data[k][4]),float(data[k][5]),float(data[k][6]),float(data[k][7]),gpsAvailble  )
 #         #plt.plot(EKF.mu[0],EKF.mu[1])
 #         x.append(float(EKF.mu[0]))
@@ -221,6 +228,7 @@ class EKF:
 #         Sr.append(float(EKF.mu[6]))
 #         gpsAvail.append(gpsAvailble)
 #         slipSensVal.append(EKF.slipSens(float(data[k][0]),float(data[k][1]),float(data[k][6]),float(data[k][7]), gpsAvailble))
+#         elapsed.append(timeit.default_timer() - start_time )
 
 
 #     plt.figure(1)
@@ -252,6 +260,7 @@ class EKF:
 #     plt.plot(slSens, label="slSens")
 #     plt.plot(srSens, label="srSens")
 #     plt.plot(moving,label="moving")
+#     plt.plot(elapsed,label="elapsed")
 #     plt.legend()
 #     plt.show()
 
