@@ -63,6 +63,23 @@ class Logging:
             self.titles.append('-')
         
     
+    def addLine( self ):
+        if self.startLogging:
+            # Calculate the timestamp for this measurement
+            now = time.time() - self.logStartTime
+            
+            string = locale.format('%.4f', now ) + ';'
+            
+            for i in range( len(self.data) ):
+                for j in range( len(self.data[i]) ):
+                    string += locale.format('%.6f', self.data[i][j]) + ';'
+               
+            string += '\n'
+            
+            self.log.write(string)
+            self.logLine += 1
+                
+    
     def update( self, interval = 0, samples = 0 ):
         
         if self.startLogging:
