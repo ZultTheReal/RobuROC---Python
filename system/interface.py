@@ -277,11 +277,11 @@ class Interface:
     
     def update(self):
         
-        self.velLabel[0]['text'] = (motors.actualVel[0] + motors.actualVel[1])/2
-        self.curLabel[0]['text'] = str(round(motors.actualCur[0],2)) + " " + str(round(motors.actualCur[1],2));
+        self.velLabel[0]['text'] = (motors.actualVel[0] + motors.actualVel[3])/2
+        self.curLabel[0]['text'] = str(round(motors.actualCur[0],2)) + " " + str(round(motors.actualCur[3],2));
         
-        self.velLabel[1]['text'] = (motors.actualVel[2] + motors.actualVel[3])/2
-        self.curLabel[1]['text'] = str(round(motors.actualCur[2],2)) + " " + str(round(motors.actualCur[3],2));
+        self.velLabel[1]['text'] = (motors.actualVel[1] + motors.actualVel[2])/2
+        self.curLabel[1]['text'] = str(round(motors.actualCur[1],2)) + " " + str(round(motors.actualCur[2],2));
         
         for i in range(2):
             self.velLabel[i]['text'] = motors.actualVel[i]
