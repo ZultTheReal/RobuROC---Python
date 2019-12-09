@@ -20,15 +20,15 @@ appTitle = 'RoboRUC Control Panel'
 rowTitles = ['Motor','Current [A]','Velocity [m/s]']
 
 gpsTitles = ['Heading', 'Latitude', 'Lontitude', 'Speed', 'Sat. count']
-
+motorTitle = ['Left', 'Right']
 
 class Interface:
     
 
     # Defining the labels
-    motorLabel = [None for x in range(4)]
+    motorLabel = [None for x in range(2)]
     curLabel = [None for x in range(4)]
-    velLabel = [None for x in range(4)]
+    velLabel = [None for x in range(2)]
     titleLabel = [None for x in range(3)]
     
     gpsTitleLabel = [None for x in range(5)]
@@ -158,12 +158,12 @@ class Interface:
 
         # --- Telemetry table ---
         
-        for i in range(4):
+        for i in range(2):
             
             dataBox.grid_columnconfigure(i+1, minsize=150)
             
             # Label descripting which motor
-            labelText = str(i+1)
+            labelText = motorTitle[i]
             self.motorLabel[i] = ttk.Label(dataBox, text=labelText, font=("Calibri", 18), foreground="white", background="black")
             self.motorLabel[i].grid(row=0, column=i+1, padx=5, sticky='e')
             
@@ -277,9 +277,15 @@ class Interface:
     
     def update(self):
         
-        #for i in range(4):
-        #    self.velLabel[i]['text'] = motors.actualVel[i]
-        #    self.curLabel[i]['text'] = motors.actualCur[i]
+        self.velLabel[0]['text'] = (motors.actualVel[0] + motors.actualVel[1])/2
+        self.curLabel[0]['text'] = str(round(motors.actualCur[0],2)) + " " + str(round(motors.actualCur[1],2));
+        
+        self.velLabel[1]['text'] = (motors.actualVel[2] + motors.actualVel[3])/2
+        self.curLabel[1]['text'] = str(round(motors.actualCur[2],2)) + " " + str(round(motors.actualCur[3],2));
+        
+        for i in range(2):
+            self.velLabel[i]['text'] = motors.actualVel[i]
+            self.curLabel[i]['text'] = motors.actualCur[i]
           
         for i in range(5):
             self.gpsDataLabel[i]['text'] = round(self.gpsDataSource[i],6)

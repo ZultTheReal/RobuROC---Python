@@ -8,15 +8,12 @@ class IMU:
     # Sensors class reads data from custom pcb with IMU and ultrasonic sensors
     
     connected = False
-    data = [0,0,0,0,0,0]
+    data = [0,0,0]
     
     def __init__(self):
         self.gx = 0          # Number of connected satellites
         self.gy = 0          # timestamp
         self.gz = 0           # lateral coordinate
-        self.ax = 0       # lateral direction (North,South)
-        self.ay = 0          # Longitudinal coordinate
-        self.az = 0      # Longitudinal direction (West,East)
         self.dfront = 0
         self.dback = 0
         
@@ -59,25 +56,24 @@ class IMU:
                     packlist = string.split(',')
                     strlen = len(packlist)
                     
-                    if strlen == 8:
+                    if strlen == 5:
                         
                         data = dict(item.split('=') for item in packlist)
                         
                         self.gx = float(data["gx"]) * math.pi/180.0 # Convert deg/s to rad/s
                         self.gy = float(data["gy"]) * math.pi/180.0 # Convert deg/s to rad/s
                         self.gz = -float(data["gz"]) * math.pi/180.0 # Convert deg/s to rad/s
-                        self.ax = float(data["ax"])
-                        self.ay = float(data["ay"])
-                        self.az = float(data["az"])
+                        # self.ax = float(data["ax"])
+                        # self.ay = float(data["ay"])
+                        # self.az = float(data["az"])
                         self.dfront = float(data["d1"])
                         self.dback = float(data["d2"])
+                        
+                        #print(self.gz)
                         
                         self.data[0] = self.gx
                         self.data[1] = self.gy
                         self.data[2] = -self.gz
-                        self.data[3] = self.ax
-                        self.data[4] = self.ay
-                        self.data[5] = self.az
     
                 except Exception as error:
                     errors.append( ['Sensors', 'Failed to translate string'] )

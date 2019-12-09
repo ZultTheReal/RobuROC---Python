@@ -28,23 +28,23 @@ class EKF:
         
 
         #State space covariance
-        self.R = np.array([[1e-7,   0,      0,      0,      0,      0,      0], #X
-                           [0,      1e-7,   0,      0,      0,      0,      0], #Y
-                           [0,      0,      1e-7,   0,      0,      0,      0], #Theta
-                           [0,      0,      0,      1e-7,   0,      0,      0], #Vb
+        self.R = np.array([[1e-11,   0,      0,      0,      0,      0,      0], #X
+                           [0,      1e-11,   0,      0,      0,      0,      0], #Y
+                           [0,      0,      1e-8,   0,      0,      0,      0], #Theta
+                           [0,      0,      0,      1e-5,   0,      0,      0], #Vb
                            [0,      0,      0,      0,      1e-5,   0,      0], #Omega
-                           [0,      0,      0,      0,      0,      1e-4,   0], #Sl
-                           [0,      0,      0,      0,      0,      0,      1e-4]]) #Sr 
+                           [0,      0,      0,      0,      0,      1e-2,   0], #Sl
+                           [0,      0,      0,      0,      0,      0,      1e-2]]) #Sr 
 
         #Sensor covariance
-        self.Q = np.array([[1e-5,   0,      0,      0,      0,      0,      0,      0],  # X_gps
-                           [0,      1e-5,   0,      0,      0,      0,      0,      0],  #Y_gps
+        self.Q = np.array([[1e-7,   0,      0,      0,      0,      0,      0,      0],  # X_gps
+                           [0,      1e-7,   0,      0,      0,      0,      0,      0],  #Y_gps
                            [0,      0,      1e-2,   0,      0,      0,      0,      0],  #Theta_gps
-                           [0,      0,      0,      1e-7,   0,      0,      0,      0], #Theta_mag
+                           [0,      0,      0,      1e-8,   0,      0,      0,      0], #Theta_mag
                            [0,      0,      0,      0,      1e-4,   0,      0,      0],  #V_gps
                            [0,      0,      0,      0,      0,      1e-7,   0,      0], #Omega_gyro
                            [0,      0,      0,      0,      0,      0,      1e2,   0], #Sl
-                           [0,      0,      0,      0,      0,      0,      0,      1e2]]) #Sr 
+                           [0,      0,      0,      0,      0,      0,      0,      1e2]]) #Sr  
 
     def set_Init(self,gpsX,gpsY,magTheta):
         self.mu = np.array([[gpsX],[gpsY],[magTheta],[0],[0],[self.Sl],[self.Sr]]) #Init mu with expected values 

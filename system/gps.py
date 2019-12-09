@@ -39,7 +39,7 @@ class GPS:
                 parity=serial.PARITY_NONE,
                 stopbits=serial.STOPBITS_ONE,
                 bytesize=serial.EIGHTBITS,
-                timeout=0.05
+                timeout=0.02
             )
             
             self.setup()
@@ -77,11 +77,15 @@ class GPS:
         
         if self.connected:
             
-            
-            tempString = ''
-            while self.ser.in_waiting !=0:
-                tempString = self.ser.readline().decode().strip('\r\n')
-                
+            try:
+                tempString = ''
+                while self.ser.in_waiting !=0:
+                    tempString = self.ser.readline().decode().strip('\r\n')
+            except Exception as error:
+                self.connected = False
+                print("MARK SIGER STOOOP")
+                return 0
+        
             # Every line from buffer is read, now use the newest to get data
             if tempString != '':
 
@@ -135,7 +139,7 @@ class GPS:
                     utmdat = self.getUTM()
                     self.utmData[0] = utmdat[0]
                     self.utmData[1] = utmdat[1]
-                    
+            
                 except Exception as error:
                     print(error)
                     errors.append( ['GPS', 'Could not unpack data'] )

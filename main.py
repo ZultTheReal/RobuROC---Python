@@ -5,8 +5,9 @@ import control as con
 import time
 import math
 import utm
-import httpServer
+#import httpServer
 
+from threading import Thread
 
 
 path = list()
@@ -44,7 +45,7 @@ car.log.addMeasurements(
 
 car.log.addMeasurements(
     car.imu.data,
-    ['gX', 'gY', 'gZ','aX', 'aY', 'aZ']
+    ['gX', 'gY', 'gZ']
 )
 
 
@@ -132,9 +133,16 @@ def excecuteControl( ):
                 car.motors.setCurrent( 1 , 0 )
                 car.motors.setCurrent( 2 , 0 )
                 car.motors.setCurrent( 3 , 0 )
-    
-    
-                    
+   
+def getSensorData():
+    while(1):
+        gpsAvailble = car.gps.getData()
+        car.imu.getData()
+        car.compass.getData()
+        
+thread = Thread(target = getSensorData)
+thread.start()
+
 while( car.gui.appOpen ):
     
     start_time = time.time()
@@ -144,16 +152,19 @@ while( car.gui.appOpen ):
         car.log.addLine()
     
     car.gui.update()
-    
-    gpsAvailble = car.gps.getData()
-    car.imu.getData()
-    car.compass.getData()
-    
+
     excecuteControl();
-    print("CPU-TIME:", ((time.time() - start_time)/0.025)*100 )
+
+    cpu_usage = ((time.time() - start_time)/0.025)*100;
+    if cpu_usage > 100:
+        print("CPU-TIME:", round(cpu_usage,2) )
     
-    # Sleep the 
-    time.sleep(0.025 - (time.time() % 0.025))
+    excecution_time = time.time() - start_time;
+    
+    if excecution_time < 0.025:
+        # Sleep the 
+        time.sleep(0.025 - (time.time() % 0.025))
+    
         
     # Print errors to gui log
     for i in range(0,len(car.errors)):
