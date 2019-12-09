@@ -277,9 +277,9 @@ class Interface:
     
     def update(self):
         
-        for i in range(4):
-            self.velLabel[i]['text'] = motors.actualVel[i]
-            self.curLabel[i]['text'] = motors.actualCur[i]
+        #for i in range(4):
+        #    self.velLabel[i]['text'] = motors.actualVel[i]
+        #    self.curLabel[i]['text'] = motors.actualCur[i]
           
         for i in range(5):
             self.gpsDataLabel[i]['text'] = round(self.gpsDataSource[i],6)

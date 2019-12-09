@@ -5,32 +5,8 @@ import control as con
 import time
 import math
 import utm
-#import httpServer
+import httpServer
 
-from threading import Timer
-
-continueControl = True;
-
-
-# Function for running the control system
-def repeater(start, interval, count):   
-    # Get current time
-    ticks = time.time()
-    
-    # Set next timing event
-    t = Timer( interval - (ticks-start-count*interval), repeater, [start, interval, count+1])
-    t.start()
-    print(ticks - start, "#", count )
-    
-    # Perform function here
-    excecuteControl();
-    
-    if not continueControl:
-        t.cancel()
-    
-dt = 0.025 # interval in sec
-t = Timer(dt, repeater, [round(time.time()), dt, 0]) # start over at full second, round only for testing here
-t.start()
 
 
 path = list()
@@ -106,11 +82,10 @@ con.EKF.set_Init(actualPos[0],actualPos[1],car.compass.heading) #init kalman wit
 
 
 # Function to run at control loop speed
-def excecuteControl():
+def excecuteControl( ):
     
     left = 0.0
     right = 0.0
-
         
     # Control via xbox controller
     if car.var.gamepadEnabled:
@@ -158,17 +133,27 @@ def excecuteControl():
                 car.motors.setCurrent( 2 , 0 )
                 car.motors.setCurrent( 3 , 0 )
     
-    if car.var.loggingEnabled:
-        car.log.addLine() # Log with the frequency the function is called
-
+    
                     
 while( car.gui.appOpen ):
+    
+    start_time = time.time()
+    
+     # Log with the frequency the function is called
+    if car.var.loggingEnabled:
+        car.log.addLine()
     
     car.gui.update()
     
     gpsAvailble = car.gps.getData()
     car.imu.getData()
     car.compass.getData()
+    
+    excecuteControl();
+    print("CPU-TIME:", ((time.time() - start_time)/0.025)*100 )
+    
+    # Sleep the 
+    time.sleep(0.025 - (time.time() % 0.025))
         
     # Print errors to gui log
     for i in range(0,len(car.errors)):
