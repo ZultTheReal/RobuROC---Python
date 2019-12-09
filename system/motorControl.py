@@ -6,6 +6,8 @@ from .constants import *
 MODE_VELOCITY = 3
 MODE_CURRENT = 4
 
+
+
 class MotorControl:
     
     setpointSpeed = [0, 0, 0, 0]
@@ -19,6 +21,8 @@ class MotorControl:
     # Arrays to hold actual values
     actualCur = [0, 0, 0, 0]
     actualVel = [0, 0, 0, 0]
+    
+    velocityDeadzone = 0.05
     
     # Arrays to hold periodic can objects 
     curPeriodic = [None, None, None, None]
@@ -136,7 +140,8 @@ class MotorControl:
             scaled = round( value/SCALE_CURRENT, 4)
             index = int(COBID_ACT_CURRENT.index(canid))
             self.actualCur[index] = scaled
-            
+        
+        # Returned velocity
         if canid in COBID_ACT_VELOCITY:
             
             if( (canid - 881 + 1) in [2,3] ):
@@ -144,7 +149,7 @@ class MotorControl:
                 
             scaled = round(value/SCALE_VELOCITY*SCALE_RPM_TO_MPS, 4)
             index = int(COBID_ACT_VELOCITY.index(canid))
-            self.actualVel[index] = scaled
+            self.actualVel[index] = scaled if abs(scaled) > self.velocityDeadzone else 0.0;
             
  
     def startPeriodic(self):

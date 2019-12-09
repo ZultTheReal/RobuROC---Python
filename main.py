@@ -9,6 +9,8 @@ import utm
 
 from threading import Timer
 
+continueControl = True;
+
 
 # Function for running the control system
 def repeater(start, interval, count):   
@@ -22,6 +24,9 @@ def repeater(start, interval, count):
     
     # Perform function here
     excecuteControl();
+    
+    if not continueControl:
+        t.cancel()
     
 dt = 0.025 # interval in sec
 t = Timer(dt, repeater, [round(time.time()), dt, 0]) # start over at full second, round only for testing here
@@ -100,13 +105,12 @@ actualPos = car.gps.getUTM()
 con.EKF.set_Init(actualPos[0],actualPos[1],car.compass.heading) #init kalman with x, y and theta
 
 
-leftSpeed = 0.0
-rightSpeed = 0.0
-
+# Function to run at control loop speed
 def excecuteControl():
     
-    leftSpeed = 0.0
-    rightSpeed = 0.0
+    left = 0.0
+    right = 0.0
+
         
     # Control via xbox controller
     if car.var.gamepadEnabled:
@@ -174,5 +178,6 @@ while( car.gui.appOpen ):
         car.gui.addToLog(error[0], error[1])
 
 
-# If application is closed, kill the network
+# If application is closed, kill the network and stop control timer
 car.motors.disconnect()
+continueControl = False
