@@ -29,7 +29,7 @@ class GPS:
         self.heading = 0            # Which direction the vehicle is heading
         self.linear_speed = 0
         self.rate_of_climb = 0      # Vertical speed (uphill)
-        self.superSpeed = 0
+        self.filter_speed = 0
         self.available = 0
     def __str__(self):
        return f'Satellite Count: {self.sat_count}   Timestamp: {self.timestamp}  Latitude: {self.latitude}   Latitude Direction: {self.latitude_dir}   Longitude: {self.longitude}   Longitude Direction: {self.longitude_dir}   Heading: {self.heading}   Linear_speed: {self.linear_speed}'
@@ -42,7 +42,7 @@ class GPS:
                 parity=serial.PARITY_NONE,
                 stopbits=serial.STOPBITS_ONE,
                 bytesize=serial.EIGHTBITS,
-                timeout=0.02
+                timeout=0.03
             )
             
             self.setup()
@@ -124,7 +124,7 @@ class GPS:
 
             nmea_str = temp[0] 
             CRC2 = self.checksum(nmea_str) #Calculate checksum for received nmea_str 
-
+            
             if CRC1 is CRC2: # if the two checksums match update the GPS info
                 temp = nmea_str.split(",")
                 
@@ -142,7 +142,7 @@ class GPS:
                     self.linear_speed = round(self.floatOrZero(temp[12]) * 0.5144, 15)
                     self.rate_of_climb = self.floatOrZero(temp[13])
                     
-                    self.superSpeed = self.EMA(self.linear_speed, self.superSpeed, 0.1)
+                    self.filter_speed = self.LPF(self.linear_speed, self.filter_speed, 0.1)
                     
                     utmdat = self.getUTM()
                     self.utmData[0] = utmdat[0]
@@ -167,10 +167,11 @@ class GPS:
     
             else:
                 errors.append( ['GPS', 'Checksum doesn\'t match'] )
+                #print(temp)
                 return 0
     
-    def EMA( self, newSample, oldSample, alpha ):
-        return ((alpha * newSample) + (1.0-alpha) * oldSample)  
+    def LPF( self, newSample, oldSample, alpha ):
+        return (alpha * newSample) + (1.0-alpha) * oldSample  
 
     
     def floatOrZero(self,strValue):

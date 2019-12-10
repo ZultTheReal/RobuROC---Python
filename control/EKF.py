@@ -13,6 +13,9 @@ eTol = 0.7
 class EKF:
     data = [0.0,0.0,0.0,0.0,0.0,0.0,0.0]
     
+    omegaLeftBuf = np.zeros(5)
+    omegaRightBuf = np.zeros(5)
+    
     def __init__(self):
         self.mu = np.zeros((nrStates,1)) # X, Y, Theta, Vb, Omega, Sl, Sr
         self.sigma = np.zeros((nrStates,nrStates))
@@ -31,10 +34,10 @@ class EKF:
         self.R = np.array([[1e-11,   0,      0,      0,      0,      0,      0], #X
                            [0,      1e-11,   0,      0,      0,      0,      0], #Y
                            [0,      0,      1e-8,   0,      0,      0,      0], #Theta
-                           [0,      0,      0,      1e-3,   0,      0,      0], #Vb
+                           [0,      0,      0,      1e-6,   0,      0,      0], #Vb
                            [0,      0,      0,      0,      1e-3,   0,      0], #Omega
-                           [0,      0,      0,      0,      0,      1e-2,   0], #Sl
-                           [0,      0,      0,      0,      0,      0,      1e-2]]) #Sr 
+                           [0,      0,      0,      0,      0,      1e-3,   0], #Sl
+                           [0,      0,      0,      0,      0,      0,      1e-3]]) #Sr 
 
         #Sensor covariance
         self.Q = np.array([[1e-7,   0,      0,      0,      0,      0,      0,      0],  # X_gps
@@ -43,8 +46,8 @@ class EKF:
                            [0,      0,      0,      1e-8,   0,      0,      0,      0], #Theta_mag
                            [0,      0,      0,      0,      1e-4,   0,      0,      0],  #V_gps
                            [0,      0,      0,      0,      0,      1e-7,   0,      0], #Omega_gyro
-                           [0,      0,      0,      0,      0,      0,      1e1,   0], #Sl
-                           [0,      0,      0,      0,      0,      0,      0,      1e1]]) #Sr  
+                           [0,      0,      0,      0,      0,      0,      1e-3,   0], #Sl
+                           [0,      0,      0,      0,      0,      0,      0,      1e-3]]) #Sr  
 
     def set_Init(self,gpsX,gpsY,magTheta):
         self.mu = np.array([[gpsX],[gpsY],[magTheta],[0],[0],[self.Sl],[self.Sr]]) #Init mu with expected values
@@ -53,16 +56,22 @@ class EKF:
 
     def slipSens(self,omegaLw,omegaRw,V_gps,Omega_gyro, gpsAvailble): #Calculate estimated "sensor" slip
         if ((gpsAvailble == 1) and (V_gps > 0.3) and (abs(omegaLw) > 0.2) and (abs(omegaRw) > 0.2)):
-            Sl = (1 - (2* V_gps - Omega_gyro* WIDTH_CAR)/(2*WHEEL_RADIUS*omegaLw))
-            Sr = (1 - (2* V_gps + Omega_gyro* WIDTH_CAR)/(2*WHEEL_RADIUS*omegaRw))
+            
+            #Sl = (1 - (2* V_gps - Omega_gyro* WIDTH_CAR)/(2*WHEEL_RADIUS*omegaLw))
+            Sl = (1 - (V_gps - (Omega_gyro* WIDTH_CAR/2))/(WHEEL_RADIUS*omegaLw))
+            
+            #Sr = (1 - (2* V_gps + Omega_gyro* WIDTH_CAR)/(2*WHEEL_RADIUS*omegaRw))
+            Sr = (1 - (V_gps + (Omega_gyro* WIDTH_CAR/2))/(WHEEL_RADIUS*omegaRw))
+            
             Sl, Sr = self.correctSlip(Sl,Sr)
-            return Sl,Sr,1 # moving =1
+            print("slipSens:", Sl, Sr)
+            return Sl,Sr,1 # moving = 1
         else:
             return 0,0,0 # moving = 0
     
     def correctSlip(self,Sl,Sr): #Function to make sure slip never gets below zero or above 1 
         if Sl < 0:
-            Sl =0
+            Sl = 0
         elif Sl > 1:
             Sl = 1 
 
@@ -90,7 +99,15 @@ class EKF:
         
 
     def updateEKF(self,omegaLw,omegaRw, X_gps, Y_gps, Theta_gps, Theta_mag, V_gps, Omega_gyro, gpsAvailble):
-        self.Sl,self.SR, moving = self.slipSens(omegaLw,omegaRw,V_gps,Omega_gyro, gpsAvailble) 
+        
+        self.omegaLeftBuf = np.roll(self.omegaLeftBuf,1)
+        self.omegaRightBuf = np.roll(self.omegaRightBuf,1)
+        
+        self.omegaLeftBuf[0] = omegaLw
+        self.omegaRightBuf[0] = omegaRw
+        
+        
+        self.Sl,self.SR, moving = self.slipSens(self.omegaLeftBuf[4],self.omegaRightBuf[4],V_gps,Omega_gyro, gpsAvailble) 
         Theta_gps = self.correctGps(Theta_gps,Theta_mag)
 
         # u is the input vector containing omegaLw and omegaRw
@@ -122,7 +139,7 @@ class EKF:
         self.mu[5,0],self.mu[6,0] = self.correctSlip(self.mu[5,0],self.mu[6,0])
         for x in range(nrStates):
             self.data[x] = float(self.mu[x])
-        print(self.mu)
+        print("slipEstimate:", self.mu[5],self.mu[6])
 
 
 

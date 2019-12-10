@@ -117,7 +117,7 @@ def excecuteControl():
                 # Inputdata for Kalman
                 actualPos, dataStatus = car.gps.getNewestData()
                 
-                print(dataStatus)
+                #print(dataStatus)
                 
                 if not initKalman[0]:
                     initKalman[0] = True
@@ -129,7 +129,7 @@ def excecuteControl():
                     
                     
                     
-                    con.EKF.updateEKF(leftWheel,rightWheel,actualPos[0], actualPos[1], car.compass.heading, car.compass.heading, car.gps.linear_speed, car.imu.gz, dataStatus)
+                    con.EKF.updateEKF(leftWheel,rightWheel,actualPos[0], actualPos[1], car.compass.heading, car.compass.heading, car.gps.filter_speed, car.imu.gz, dataStatus)
                                    
                     #speed = con.navigation.run(actualPos, car.compass.heading, car.gps.superSpeed, car.imu.gz)
                      
@@ -177,7 +177,7 @@ while( car.gui.appOpen ):
 
     cpu_usage = ((time.time() - start_time)/0.025)*100;
     if cpu_usage > 100:
-        print("CPU-TIME:", round(cpu_usage,2) )
+        pass #print("CPU-TIME:", round(cpu_usage,2) )
     
     excecution_time = time.time() - start_time;
     
