@@ -6,7 +6,7 @@ from .shared import *
 class IMU:
     
     # Sensors class reads data from custom pcb with IMU and ultrasonic sensors
-    
+    gyroDeadzone = 0.5
     connected = False
     data = [0,0,0]
     
@@ -60,9 +60,17 @@ class IMU:
                         
                         data = dict(item.split('=') for item in packlist)
                         
-                        self.gx = float(data["gx"]) * math.pi/180.0 # Convert deg/s to rad/s
-                        self.gy = float(data["gy"]) * math.pi/180.0 # Convert deg/s to rad/s
-                        self.gz = -float(data["gz"]) * math.pi/180.0 # Convert deg/s to rad/s
+                        gx = float(data["gx"])
+                        gy = float(data["gy"])
+                        gz = float(data["gz"])
+                        
+                        gx = gx if abs(gx) > self.gyroDeadzone else 0.0
+                        gy = gy if abs(gy) > self.gyroDeadzone else 0.0
+                        gz = gz if abs(gz) > self.gyroDeadzone else 0.0
+                        
+                        self.gx = gx * math.pi/180.0 # Convert deg/s to rad/s
+                        self.gy = gy * math.pi/180.0 # Convert deg/s to rad/s
+                        self.gz = -gz * math.pi/180.0 # Convert deg/s to rad/s
                         # self.ax = float(data["ax"])
                         # self.ay = float(data["ay"])
                         # self.az = float(data["az"])

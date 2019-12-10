@@ -10,7 +10,7 @@ class OptimalControl:
                                                                     # Settings
         self.refGain = np.array([
             [2*1, 0],
-            [0,      1/2 *1.9795]
+            [0,      1.9795]
         ])
         
         # Kr

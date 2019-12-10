@@ -11,6 +11,8 @@ class GPS:
     data = [0, 0, 0, 0, 0] #Heading, latitude, lontitude, linear_speed
     connected = False
     
+    dataReady = 0;
+    
     utmData = [0, 0]
 
     def __init__(self):
@@ -27,7 +29,8 @@ class GPS:
         self.heading = 0            # Which direction the vehicle is heading
         self.linear_speed = 0
         self.rate_of_climb = 0      # Vertical speed (uphill)
-        self.superSpeed = 0        
+        self.superSpeed = 0
+        self.available = 0
     def __str__(self):
        return f'Satellite Count: {self.sat_count}   Timestamp: {self.timestamp}  Latitude: {self.latitude}   Latitude Direction: {self.latitude_dir}   Longitude: {self.longitude}   Longitude Direction: {self.longitude_dir}   Heading: {self.heading}   Linear_speed: {self.linear_speed}'
 
@@ -65,15 +68,24 @@ class GPS:
         #if ack != "$PASHR,ACK*3D"
         #   return -1
         return 0
+    
+    def getNewestData(self):
 
-    def getData(self):
+        data = self.getUTM();
+        status = self.dataReady;
+        
+        if self.dataReady:
+            self.dataReady = 0
+  
+        return data, status
+
+    def readData(self):
         
         try:
             bytesWaiting = self.ser.in_waiting
             self.connected = True
         except Exception as error:
             self.connected = False
-            return 0
         
         if self.connected:
             
@@ -84,16 +96,12 @@ class GPS:
             except Exception as error:
                 self.connected = False
                 print("MARK SIGER STOOOP")
-                return 0
         
             # Every line from buffer is read, now use the newest to get data
             if tempString != '':
 
                 # Unpack nmea string and save data in class
-                gpsData = self.unpack(tempString)
-                return gpsData
-                #print(data)
-            return 0
+                self.dataReady = self.unpack(tempString)
                 
 
     def checksum(self,nmea_str):
@@ -151,6 +159,7 @@ class GPS:
                 self.data[2] = self.longitude
                 self.data[3] = self.linear_speed
                 self.data[4] = self.sat_count
+                
                 if self.sat_count != 0:
                     return 1
                 else:

@@ -21,8 +21,8 @@ class EKF:
         self.K = np.zeros((nrStates,nrSensors))
         self.z = np.zeros((nrSensors,1))
         self.u = np.zeros((2,1))
-        self.Sl = 0.05 # slip "sensor" left, value used to init state
-        self.Sr = 0.05 # slip "sensor" right, value used to init state
+        self.Sl = 0.0 # slip "sensor" left, value used to init state
+        self.Sr = 0.0 # slip "sensor" right, value used to init state
         
         
         
@@ -31,8 +31,8 @@ class EKF:
         self.R = np.array([[1e-11,   0,      0,      0,      0,      0,      0], #X
                            [0,      1e-11,   0,      0,      0,      0,      0], #Y
                            [0,      0,      1e-8,   0,      0,      0,      0], #Theta
-                           [0,      0,      0,      1e-5,   0,      0,      0], #Vb
-                           [0,      0,      0,      0,      1e-5,   0,      0], #Omega
+                           [0,      0,      0,      1e-3,   0,      0,      0], #Vb
+                           [0,      0,      0,      0,      1e-3,   0,      0], #Omega
                            [0,      0,      0,      0,      0,      1e-2,   0], #Sl
                            [0,      0,      0,      0,      0,      0,      1e-2]]) #Sr 
 
@@ -43,11 +43,11 @@ class EKF:
                            [0,      0,      0,      1e-8,   0,      0,      0,      0], #Theta_mag
                            [0,      0,      0,      0,      1e-4,   0,      0,      0],  #V_gps
                            [0,      0,      0,      0,      0,      1e-7,   0,      0], #Omega_gyro
-                           [0,      0,      0,      0,      0,      0,      1e2,   0], #Sl
-                           [0,      0,      0,      0,      0,      0,      0,      1e2]]) #Sr  
+                           [0,      0,      0,      0,      0,      0,      1e1,   0], #Sl
+                           [0,      0,      0,      0,      0,      0,      0,      1e1]]) #Sr  
 
     def set_Init(self,gpsX,gpsY,magTheta):
-        self.mu = np.array([[gpsX],[gpsY],[magTheta],[0],[0],[self.Sl],[self.Sr]]) #Init mu with expected values 
+        self.mu = np.array([[gpsX],[gpsY],[magTheta],[0],[0],[self.Sl],[self.Sr]]) #Init mu with expected values
         self.sigma = self.R
         return
 
@@ -122,6 +122,7 @@ class EKF:
         self.mu[5,0],self.mu[6,0] = self.correctSlip(self.mu[5,0],self.mu[6,0])
         for x in range(nrStates):
             self.data[x] = float(self.mu[x])
+        print(self.mu)
 
 
 

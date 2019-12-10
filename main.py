@@ -9,6 +9,7 @@ import utm
 
 from threading import Thread
 
+initKalman = [False]
 
 path = list()
 
@@ -74,20 +75,20 @@ car.compass.connect('COM6')
 car.gps.connect('COM13')
 car.imu.connect('COM14')
 
-gpsAvailble = car.gps.getData() # remeber that this should run untill first gps posistion
+car.gps.readData() # remeber that this should run untill first gps posistion
 car.imu.getData()
 car.compass.getData()
 actualPos = car.gps.getUTM()
 
-con.EKF.set_Init(actualPos[0],actualPos[1],car.compass.heading) #init kalman with x, y and theta
+
 
 
 # Function to run at control loop speed
-def excecuteControl( ):
+def excecuteControl():
     
     left = 0.0
     right = 0.0
-        
+    
     # Control via xbox controller
     if car.var.gamepadEnabled:
         if car.gamepad.buttons()[0]: # If button A is pressed
@@ -107,36 +108,55 @@ def excecuteControl( ):
                 car.motors.setMPS( 1 , -right )
                 car.motors.setMPS( 2 , -right )
                 car.motors.setMPS( 3 , left )
-
+ 
         # Else control via path finding
         elif car.gamepad.buttons()[1]:
             
             if( car.gps.sat_count >= 0):
 
                 # Inputdata for Kalman
-                actualPos = car.gps.getUTM()
-                leftWheel = (car.motors.actualVel[0] + car.motors.actualVel[3])/(2*car.WHEEL_RADIUS);
-                rightWheel = (car.motors.actualVel[1] + car.motors.actualVel[2])/(2*car.WHEEL_RADIUS);
+                actualPos, dataStatus = car.gps.getNewestData()
                 
-                con.EKF.updateEKF(leftWheel,rightWheel,actualPos[0], actualPos[1], car.compass.heading, car.compass.heading, car.gps.linear_speed, car.imu.gz, gpsAvailble)
-                               
-                #speed = con.navigation.run(actualPos, car.compass.heading, car.gps.superSpeed, car.imu.gz)
-                 
-                # Test step-response
-                velRef = 1 # m/s
-                rotRef = 0 # rad/s
-                speed = con.navigation.controller.run(velRef, rotRef, float(con.EKF.mu[3]), float(con.EKF.mu[4]))
+                print(dataStatus)
+                
+                if not initKalman[0]:
+                    initKalman[0] = True
+                    con.EKF.set_Init(actualPos[0],actualPos[1],car.compass.heading) #init kalman with x, y and theta
+                else:
+                
+                    leftWheel = (car.motors.actualVel[0] + car.motors.actualVel[3])/(2*car.WHEEL_RADIUS);
+                    rightWheel = (car.motors.actualVel[1] + car.motors.actualVel[2])/(2*car.WHEEL_RADIUS);
                     
+                    
+                    
+                    con.EKF.updateEKF(leftWheel,rightWheel,actualPos[0], actualPos[1], car.compass.heading, car.compass.heading, car.gps.linear_speed, car.imu.gz, dataStatus)
+                                   
+                    #speed = con.navigation.run(actualPos, car.compass.heading, car.gps.superSpeed, car.imu.gz)
+                     
+                    # Test step-response
+                    velRef = 1 # m/s
+                    rotRef = 0 # rad/s
+                    speed = con.navigation.controller.run(velRef, rotRef, float(con.EKF.mu[3]), float(con.EKF.mu[4]))
+                    
+                    if car.motors.ready:
+                        car.motors.setRPS( 0 , speed[0])
+                        car.motors.setRPS( 1 , -speed[1])
+                        car.motors.setRPS( 2 , -speed[1])
+                        car.motors.setRPS( 3 , speed[0])
+                
         else:
+            
+            initKalman[0] = False
+            
             if car.motors.ready:
                 car.motors.setCurrent( 0 , 0)
                 car.motors.setCurrent( 1 , 0 )
                 car.motors.setCurrent( 2 , 0 )
                 car.motors.setCurrent( 3 , 0 )
-   
+
 def getSensorData():
     while(1):
-        gpsAvailble = car.gps.getData()
+        car.gps.readData()
         car.imu.getData()
         car.compass.getData()
         
