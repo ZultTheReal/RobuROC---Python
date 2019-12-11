@@ -158,7 +158,7 @@ class GPS:
                 self.data[1] = self.latitude
                 self.data[2] = self.longitude
                 self.data[3] = self.linear_speed
-                self.data[4] = self.sat_count
+                self.data[4] = self.filter_speed
                 
                 if self.sat_count != 0:
                     return 1

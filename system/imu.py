@@ -6,7 +6,7 @@ from .shared import *
 class IMU:
     
     # Sensors class reads data from custom pcb with IMU and ultrasonic sensors
-    gyroDeadzone = 0.5
+    gyroDeadzone = 1.2 # deg/s
     connected = False
     data = [0,0,0]
     

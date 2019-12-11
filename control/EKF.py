@@ -4,17 +4,17 @@ from numpy.linalg import inv
 
 WHEEL_RADIUS = 0.28 # meter
 WIDTH_CAR = 0.69 # meter
-dt = 0.05
+dt = 0.025
 nrStates = 7
 nrSensors = 8
 eTol = 0.7
 
 
 class EKF:
-    data = [0.0,0.0,0.0,0.0,0.0,0.0,0.0]
+    data = [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]
     
-    omegaLeftBuf = np.zeros(5)
-    omegaRightBuf = np.zeros(5)
+    omegaLeftBuf = np.zeros(10) # Room for 10 samples 
+    omegaRightBuf = np.zeros(10)
     
     def __init__(self):
         self.mu = np.zeros((nrStates,1)) # X, Y, Theta, Vb, Omega, Sl, Sr
@@ -64,21 +64,24 @@ class EKF:
             Sr = (1 - (V_gps + (Omega_gyro* WIDTH_CAR/2))/(WHEEL_RADIUS*omegaRw))
             
             Sl, Sr = self.correctSlip(Sl,Sr)
+            self.data[7] = Sl
+            self.data[8] = Sr
+            
             print("slipSens:", Sl, Sr)
             return Sl,Sr,1 # moving = 1
         else:
             return 0,0,0 # moving = 0
     
     def correctSlip(self,Sl,Sr): #Function to make sure slip never gets below zero or above 1 
-        if Sl < 0:
-            Sl = 0
-        elif Sl > 1:
-            Sl = 1 
+        #if Sl < 0:
+        #    Sl = 0
+        #elif Sl > 1:
+        #    Sl = 1 
 
-        if Sr < 0:
-            Sr = 0
-        elif Sr > 1:
-            Sr = 1 
+        #if Sr < 0:
+        #    Sr = 0
+        #elif Sr > 1:
+        #    Sr = 1 
         return Sl, Sr
 
     def correctGps(self,Theta_Gps,Theta_mag):
@@ -107,7 +110,9 @@ class EKF:
         self.omegaRightBuf[0] = omegaRw
         
         
-        self.Sl,self.SR, moving = self.slipSens(self.omegaLeftBuf[4],self.omegaRightBuf[4],V_gps,Omega_gyro, gpsAvailble) 
+        self.Sl,self.SR, moving = self.slipSens(self.omegaLeftBuf[6],self.omegaRightBuf[6],V_gps,Omega_gyro, gpsAvailble)
+        
+        #self.Sl,self.SR, moving = self.slipSens(self.omegaLeftBuf[4], self.omegaRightBuf[4], self.mu[3], self.mu[4], gpsAvailble) 
         Theta_gps = self.correctGps(Theta_gps,Theta_mag)
 
         # u is the input vector containing omegaLw and omegaRw
