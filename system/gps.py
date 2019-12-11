@@ -3,6 +3,7 @@ import operator
 from functools import reduce
 import time
 import utm
+import math
 from .shared import *
 
 class GPS:
@@ -72,12 +73,13 @@ class GPS:
     def getNewestData(self):
 
         data = self.getUTM();
+        speed = self.linear_speed;
         status = self.dataReady;
         
         if self.dataReady:
             self.dataReady = 0
   
-        return data, status
+        return data, speed, status
 
     def readData(self):
         
@@ -138,11 +140,16 @@ class GPS:
                     self.longitude = round(int(self.longitude / 100) + (self.longitude - int(self.longitude/100.0)*100.0)/60.0,15) #longtitude degree
                     self.longitude_dir = temp[8]
                     self.altitude = self.floatOrZero(temp[9])
-                    self.heading = self.floatOrZero(temp[11])
-                    self.linear_speed = round(self.floatOrZero(temp[12]) * 0.5144, 15)
+                    
+                    # Convert to radians
+                    angle = self.floatOrZero(temp[11]) * math.pi/180;
+                    # Wrap to pi
+                    self.heading = (angle) % (2 * math.pi)
+                    
+                    self.linear_speed = round(self.floatOrZero(temp[12]) * 0.5144, 5)
                     self.rate_of_climb = self.floatOrZero(temp[13])
                     
-                    self.filter_speed = self.LPF(self.linear_speed, self.filter_speed, 0.1)
+                    # self.filter_speed = self.LPF(self.linear_speed, self.filter_speed, 0.1)
                     
                     utmdat = self.getUTM()
                     self.utmData[0] = utmdat[0]
@@ -158,7 +165,7 @@ class GPS:
                 self.data[1] = self.latitude
                 self.data[2] = self.longitude
                 self.data[3] = self.linear_speed
-                self.data[4] = self.filter_speed
+                self.data[4] = self.sat_count
                 
                 if self.sat_count != 0:
                     return 1

@@ -61,15 +61,15 @@ car.log.addMeasurements(
 )
 
 
-#car.log.addMeasurements(
-#    car.compass.data,
-#    ['Heading mag', 'mX', 'mY']
-#)
+car.log.addMeasurements(
+    car.compass.data,
+    ['Heading mag', 'mX', 'mY']
+)
 
-#car.log.addMeasurements(
-#    car.gps.utmData,
-#    ['Easting', 'Northing']
-#)
+car.log.addMeasurements(
+    car.gps.utmData,
+    ['Easting', 'Northing']
+)
 
 car.compass.connect('COM6')
 car.gps.connect('COM13')
@@ -80,6 +80,19 @@ car.imu.getData()
 car.compass.getData()
 
 
+# Buffers for redoing Kalman with delayed GPS speed
+
+leftWheelBuf = [0] * 10
+rightWheelBuf = [0] * 10
+headingBuf = [0] * 10
+gyroBuf = [0] * 10
+gpsSpeedBuf = [0] * 10
+gpsPosBuf = [None] * 10
+muBuf = [None] * 10
+sigmaBuf = [None] * 10
+
+kalCount = [0]
+
 # Function to run at control loop speed
 def excecuteControl():
     
@@ -87,24 +100,11 @@ def excecuteControl():
     right = 0.0
     
     # Inputdata for Kalman
-    actualPos, dataStatus = car.gps.getNewestData()
+    gpsPos, gpsSpeed, dataStatus = car.gps.getNewestData()
     
     # Control via xbox controller
     if car.var.gamepadEnabled:
         if car.gamepad.buttons()[0]: # If button A is pressed
-
-
-            if not initKalman[0]:
-                initKalman[0] = True
-                con.EKF.set_Init(actualPos[0],actualPos[1],car.compass.heading) #init kalman with x, y and theta
-            else:
-            
-                leftWheel = (car.motors.actualVel[0] + car.motors.actualVel[3])/(2*car.WHEEL_RADIUS);
-                rightWheel = (car.motors.actualVel[1] + car.motors.actualVel[2])/(2*car.WHEEL_RADIUS);
-    
-                con.EKF.updateEKF(leftWheel,rightWheel,actualPos[0], actualPos[1], car.compass.heading, car.compass.heading, car.gps.linear_speed, car.imu.gz, dataStatus)
-                               
-
 
             # Get joystick values
             joystick = car.gamepad.left_stick()
@@ -133,15 +133,44 @@ def excecuteControl():
                 
                 if not initKalman[0]:
                     initKalman[0] = True
-                    con.EKF.set_Init(actualPos[0],actualPos[1],car.compass.heading) #init kalman with x, y and theta
+                    con.EKF.set_Init(gpsPos[0],gpsPos[1],car.compass.heading) #init kalman with x, y and theta
                 else:
                 
                     leftWheel = (car.motors.actualVel[0] + car.motors.actualVel[3])/(2*car.WHEEL_RADIUS);
                     rightWheel = (car.motors.actualVel[1] + car.motors.actualVel[2])/(2*car.WHEEL_RADIUS);
                     
+                    leftWheelBuf.pop()
+                    rightWheelBuf.pop()
+                    headingBuf.pop()
+                    gyroBuf.pop()
+                    gpsSpeedBuf.pop()
+                    gpsPosBuf.pop()
+                    muBuf.pop()
+                    sigmaBuf.pop()
                     
-                    
-                    con.EKF.updateEKF(leftWheel,rightWheel,actualPos[0], actualPos[1], car.compass.heading, car.compass.heading, car.gps.linear_speed, car.imu.gz, dataStatus)
+                    leftWheelBuf.insert(0, leftWheel)
+                    rightWheelBuf.insert(0, rightWheel)
+                    headingBuf.insert(0, car.compass.heading)
+                    gyroBuf.insert(0, car.imu.gz)
+                    gpsSpeedBuf.insert(0, car.gps.linear_speed)
+                    gpsPosBuf.insert(0, gpsPos)
+                    muBuf.insert(0, con.EKF.mu)
+                    sigmaBuf.insert(0, con.EKF.sigma)
+
+                    # New GPS reading.The speed is approximately 7 samples behind everything else, thus we recalculate Kalman for these samples
+                    if dataStatus and kalCount[0] > 10:
+                        for i in range(7):
+                            
+                            if i == 0:
+                                con.EKF.sigma = sigmaBuf[7]
+                                con.EKF.mu = muBuf[7]
+                            
+                            con.EKF.updateEKF(leftWheelBuf[6-i], rightWheelBuf[6-i], gpsPosBuf[6-i][0], gpsPosBuf[6-i][1], headingBuf[6-i], headingBuf[6-i], gpsSpeedBuf[6-i], gyroBuf[6-i], dataStatus)
+                            dataStatus = 0
+                            
+                    else:
+                        kalCount[0] = kalCount[0] + 1
+                        con.EKF.updateEKF(leftWheel, rightWheel, gpsPos[0], gpsPos[1], car.compass.heading, car.compass.heading, car.gps.linear_speed, car.imu.gz, dataStatus)
                                    
                     #speed = con.navigation.run(actualPos, car.compass.heading, car.gps.superSpeed, car.imu.gz)
                      
@@ -159,6 +188,7 @@ def excecuteControl():
         else:
             
             initKalman[0] = False
+            kalCount[0] = 0
             
             if car.motors.ready:
                 car.motors.setCurrent( 0 , 0)

@@ -5,8 +5,8 @@ from numpy.linalg import inv
 WHEEL_RADIUS = 0.28 # meter
 WIDTH_CAR = 0.69 # meter
 dt = 0.025
-nrStates = 7
-nrSensors = 8
+nrStates = 5
+nrSensors = 6
 eTol = 0.7
 
 
@@ -16,7 +16,14 @@ class EKF:
     omegaLeftBuf = np.zeros(10) # Room for 10 samples 
     omegaRightBuf = np.zeros(10)
     
+    Sl = 0.0
+    Sr = 0.0
+    
+    Sl_prev = 0.0
+    Sr_prev = 0.0
+    
     def __init__(self):
+        
         self.mu = np.zeros((nrStates,1)) # X, Y, Theta, Vb, Omega, Sl, Sr
         self.sigma = np.zeros((nrStates,nrStates))
         self.G = np.zeros((nrStates,nrStates))
@@ -24,64 +31,53 @@ class EKF:
         self.K = np.zeros((nrStates,nrSensors))
         self.z = np.zeros((nrSensors,1))
         self.u = np.zeros((2,1))
-        self.Sl = 0.0 # slip "sensor" left, value used to init state
-        self.Sr = 0.0 # slip "sensor" right, value used to init state
-        
-        
         
 
         #State space covariance
-        self.R = np.array([[1e-11,   0,      0,      0,      0,      0,      0], #X
-                           [0,      1e-11,   0,      0,      0,      0,      0], #Y
-                           [0,      0,      1e-8,   0,      0,      0,      0], #Theta
-                           [0,      0,      0,      1e-6,   0,      0,      0], #Vb
-                           [0,      0,      0,      0,      1e-3,   0,      0], #Omega
-                           [0,      0,      0,      0,      0,      1e-3,   0], #Sl
-                           [0,      0,      0,      0,      0,      0,      1e-3]]) #Sr 
+        self.R = np.array([[1e-11,  0,      0,      0,      0    ],  # X
+                           [0,      1e-11,  0,      0,      0    ],  # Y
+                           [0,      0,      1e-8,   0,      0    ],  # Theta
+                           [0,      0,      0,      1e-4,   0    ],  # Vb
+                           [0,      0,      0,      0,      1e-3 ]]) # Omega
 
         #Sensor covariance
-        self.Q = np.array([[1e-7,   0,      0,      0,      0,      0,      0,      0],  # X_gps
-                           [0,      1e-7,   0,      0,      0,      0,      0,      0],  #Y_gps
-                           [0,      0,      1e-2,   0,      0,      0,      0,      0],  #Theta_gps
-                           [0,      0,      0,      1e-8,   0,      0,      0,      0], #Theta_mag
-                           [0,      0,      0,      0,      1e-4,   0,      0,      0],  #V_gps
-                           [0,      0,      0,      0,      0,      1e-7,   0,      0], #Omega_gyro
-                           [0,      0,      0,      0,      0,      0,      1e-3,   0], #Sl
-                           [0,      0,      0,      0,      0,      0,      0,      1e-3]]) #Sr  
+        self.Q = np.array([[1e-7,   0,      0,      0,      0,      0   ],  # X_gps
+                           [0,      1e-7,   0,      0,      0,      0   ],  # Y_gps
+                           [0,      0,      1e-2,   0,      0,      0   ],  # Theta_gps
+                           [0,      0,      0,      1e-8,   0,      0   ],  # Theta_mag
+                           [0,      0,      0,      0,      1e-4,   0   ],  # V_gps
+                           [0,      0,      0,      0,      0,      1e-7]]) # Omega_gyro 
 
     def set_Init(self,gpsX,gpsY,magTheta):
         self.mu = np.array([[gpsX],[gpsY],[magTheta],[0],[0],[self.Sl],[self.Sr]]) #Init mu with expected values
         self.sigma = self.R
         return
 
-    def slipSens(self,omegaLw,omegaRw,V_gps,Omega_gyro, gpsAvailble): #Calculate estimated "sensor" slip
-        if ((gpsAvailble == 1) and (V_gps > 0.3) and (abs(omegaLw) > 0.2) and (abs(omegaRw) > 0.2)):
+    def slipSens(self,omegaLw,omegaRw,V_gps,Omega_gyro): #Calculate estimated "sensor" slip
+        if (V_gps > 0.3) and (abs(omegaLw) > 0.2) and (abs(omegaRw) > 0.2):
             
-            #Sl = (1 - (2* V_gps - Omega_gyro* WIDTH_CAR)/(2*WHEEL_RADIUS*omegaLw))
             Sl = (1 - (V_gps - (Omega_gyro* WIDTH_CAR/2))/(WHEEL_RADIUS*omegaLw))
-            
-            #Sr = (1 - (2* V_gps + Omega_gyro* WIDTH_CAR)/(2*WHEEL_RADIUS*omegaRw))
             Sr = (1 - (V_gps + (Omega_gyro* WIDTH_CAR/2))/(WHEEL_RADIUS*omegaRw))
             
-            Sl, Sr = self.correctSlip(Sl,Sr)
+            Sl, Sr = self.correctSlip(Sl, Sr)
             self.data[7] = Sl
             self.data[8] = Sr
             
-            print("slipSens:", Sl, Sr)
-            return Sl,Sr,1 # moving = 1
+            print("Slip sensor:", Sl, Sr)
+            return Sl, Sr
         else:
-            return 0,0,0 # moving = 0
+            return 0,0
     
     def correctSlip(self,Sl,Sr): #Function to make sure slip never gets below zero or above 1 
-        #if Sl < 0:
-        #    Sl = 0
-        #elif Sl > 1:
-        #    Sl = 1 
+        if Sl < 0:
+            Sl = 0
+        elif Sl > 1:
+            Sl = 1 
 
-        #if Sr < 0:
-        #    Sr = 0
-        #elif Sr > 1:
-        #    Sr = 1 
+        if Sr < 0:
+            Sr = 0
+        elif Sr > 1:
+            Sr = 1 
         return Sl, Sr
 
     def correctGps(self,Theta_Gps,Theta_mag):
@@ -101,105 +97,94 @@ class EKF:
         return Theta_predict
         
 
-    def updateEKF(self,omegaLw,omegaRw, X_gps, Y_gps, Theta_gps, Theta_mag, V_gps, Omega_gyro, gpsAvailble):
+    def updateEKF(self, omegaLw, omegaRw, X_gps, Y_gps, Theta_gps, Theta_mag, V_gps, Omega_gyro, gpsAvailble):
         
-        self.omegaLeftBuf = np.roll(self.omegaLeftBuf,1)
-        self.omegaRightBuf = np.roll(self.omegaRightBuf,1)
+        # Calculate slip estimates
+        if gpsAvailble:
+            self.Sl, self.Sr = self.slipSens(omegaLw,omegaRw,V_gps,Omega_gyro)
+        else:
+            # Useless previous slip estimate
+            pass
         
-        self.omegaLeftBuf[0] = omegaLw
-        self.omegaRightBuf[0] = omegaRw
+        self.Sl = self.LPF( self.Sl, self.Sl_prev, 0.15)
+        self.Sr = self.LPF( self.Sr, self.Sr_prev, 0.15)
+        
+        print("Filtered slip: ", self.Sl, self.Sr)
+        
+        self.Sl_prev = self.Sl
+        self.Sr_prev = self.Sr
         
         
-        self.Sl,self.SR, moving = self.slipSens(self.omegaLeftBuf[6],self.omegaRightBuf[6],V_gps,Omega_gyro, gpsAvailble)
-        
+            
         #self.Sl,self.SR, moving = self.slipSens(self.omegaLeftBuf[4], self.omegaRightBuf[4], self.mu[3], self.mu[4], gpsAvailble) 
         Theta_gps = self.correctGps(Theta_gps,Theta_mag)
 
         # u is the input vector containing omegaLw and omegaRw
-        self.u = np.array([[omegaLw],[omegaRw]])
+        self.u = np.array( [[omegaLw],[omegaRw],[self.Sl],[self.Sr]] )
 
         # Z is the sensor vector in order: X_gps, Y_gps, Theta_gps, Theta_mag, V_gps, Omega_gyro, Sl, Sr
-        self.z = np.array([[X_gps],[Y_gps],[Theta_gps],[Theta_mag],[V_gps],[Omega_gyro],[self.Sl],[self.Sr]])
+        self.z = np.array( [[X_gps],[Y_gps],[Theta_gps],[Theta_mag],[V_gps],[Omega_gyro]] )
         
         #init matrixes
-        self.G = self.Gmatrix(self.mu,self.u)
-        self.H = self.Hmatrix(gpsAvailble, moving)
+        self.G = self.Gmatrix( self.mu, self.u )
+        self.H = self.Hmatrix( gpsAvailble )
 
 
-        #predict
+        # predict
         self.mu = self.gFunc(self.mu,self.u)
-        #print(self.mu[4])
         self.sigma = self.G @ self.sigma @ self.G.transpose() + self.R
 
         # Correcting predicted values 
-        self.mu[2,0] = self.correctThetaPredict(self.mu[2,0],Theta_mag)
+        self.mu[2,0] = self.correctThetaPredict(self.mu[2,0], Theta_mag)
     
-
+        #print(self.H @ self.sigma @ self.H.transpose() + self.Q)
         #Update
-        self.K = self.sigma @ self.H.transpose() @ (inv(self.H @ self.sigma @ self.H.transpose() + self.Q))
+        self.K = self.sigma @ self.H.transpose() @ ( inv(self.H @ self.sigma @ self.H.transpose() + self.Q) )
         self.mu = self.mu + self.K @ (self.z - self.H @ self.mu)
         self.sigma = (np.identity(nrStates) - self.K @ self.H) @ self.sigma
 
         # Correct slip since it cannot be below zero
-        self.mu[5,0],self.mu[6,0] = self.correctSlip(self.mu[5,0],self.mu[6,0])
+        #self.mu[5,0],self.mu[6,0] = self.correctSlip(self.mu[5,0],self.mu[6,0])
+        
         for x in range(nrStates):
             self.data[x] = float(self.mu[x])
-        print("slipEstimate:", self.mu[5],self.mu[6])
+        #print("slipEstimate:", self.mu[5],self.mu[6])
 
-
-
-
-
+    def LPF( self, newSample, oldSample, alpha ):
+        return (alpha * newSample) + (1.0-alpha) * oldSample 
         
     def gFunc(self,mu,u):
         return np.array([[mu[0,0] + dt*np.cos(mu[2,0])*mu[3,0]],  #x  = mu[0,0]
                          [mu[1,0] + dt*np.sin(mu[2,0])*mu[3,0]],  #y  = mu[1,0]
                          [mu[2,0] + dt*mu[4,0]],  #theta = mu[2,0]
-                         [(u[0,0]*WHEEL_RADIUS*(1-mu[5,0]) + u[1,0]*WHEEL_RADIUS*(1-mu[6,0]))/2],   #Vb = mu[3,0]
-                         [(- u[0,0]*WHEEL_RADIUS*(1-mu[5,0]) + u[1,0]*WHEEL_RADIUS*(1-mu[6,0]))/WIDTH_CAR ], #omega = mu[4,0]
-                         [mu[5,0]  ],  #Sl = mu[5,0]
-                         [mu[6,0]  ]]) #Sr = mu[6,0]
+                         [(u[0,0]*WHEEL_RADIUS*(1-u[2,0]) + u[1,0]*WHEEL_RADIUS*(1-u[3,0]))/2], #Vb = mu[3,0]
+                         [(-u[0,0]*WHEEL_RADIUS*(1-u[2,0]) + u[1,0]*WHEEL_RADIUS*(1-u[3,0]))/WIDTH_CAR ]]) #omega = mu[4,0]
 
     def Gmatrix(self,mu,u):
-        return np.array([[1,    0,  -dt*mu[3,0]*np.sin(mu[2,0]),    dt*np.cos(mu[2,0]),     0,      0,                              0],
-                         [0,    1,  dt*mu[3,0]*np.cos(mu[2,0]),     dt*np.sin(mu[2,0]),     0,      0,                              0],
-                         [0,    0,  1,                              0,                      dt,     0,                              0],
-                         [0,    0,  0,                              0,                      0,      -WHEEL_RADIUS*u[0,0]/2,         -WHEEL_RADIUS*u[1,0]/2],
-                         [0,    0,  0,                              0,                      0,      WHEEL_RADIUS*u[0,0]/WIDTH_CAR,  -WHEEL_RADIUS*u[1,0]/WIDTH_CAR],
-                         [0,    0,  0,                              0,                      0,      1,                              0],
-                         [0,    0,  0,                              0,                      0,      0,                              1]])   
+        return np.array([[1,    0,  -dt*mu[3,0]*np.sin(mu[2,0]),    dt*np.cos(mu[2,0]),     0],
+                         [0,    1,  dt*mu[3,0]*np.cos(mu[2,0]),     dt*np.sin(mu[2,0]),     0],
+                         [0,    0,  1,                              0,                      dt],
+                         [0,    0,  0,                              0,                      0],
+                         [0,    0,  0,                              0,                      0]])   
 
-    def Hmatrix(self,gpsAvailble,moving):
+    def Hmatrix(self,gpsAvailble):
         if gpsAvailble == 1:
-            if moving == 1:
-                return np.array([   [1,       0,       0,       0,       0,       0,       0], #GPS_x
-                                    [0,       1,       0,       0,       0,       0,       0], #GPS_y
-                                    [0,       0,       1,       0,       0,       0,       0], #Theta_Gps
-                                    [0,       0,       1,       0,       0,       0,       0], #Theta_mag
-                                    [0,       0,       0,       1,       0,       0,       0], #V_gps
-                                    [0,       0,       0,       0,       1,       0,       0], #omega_gyro
-                                    [0,       0,       0,       0,       0,       1,       0], # Sl_sens
-                                    [0,       0,       0,       0,       0,       0,       1]]) # Sr_sens
 
-            else:
-                return np.array([   [1,       0,       0,       0,       0,       0,       0], #GPS_x
-                                    [0,       1,       0,       0,       0,       0,       0], #GPS_y
-                                    [0,       0,       1,       0,       0,       0,       0], #Theta_Gps
-                                    [0,       0,       1,       0,       0,       0,       0], #Theta_mag
-                                    [0,       0,       0,       1,       0,       0,       0], #V_gps
-                                    [0,       0,       0,       0,       1,       0,       0], #omega_gyro
-                                    [0,       0,       0,       0,       0,       0,       0], # Sl_sens
-                                    [0,       0,       0,       0,       0,       0,       0]]) # Sr_sens
+            return np.array([   [1,       0,       0,       0,       0 ], #GPS_x
+                                [0,       1,       0,       0,       0 ], #GPS_y
+                                [0,       0,       1,       0,       0 ], #Theta_Gps
+                                [0,       0,       1,       0,       0 ], #Theta_mag
+                                [0,       0,       0,       1,       0 ], #V_gps
+                                [0,       0,       0,       0,       1 ]]) #omega_gyro 
+
 
         else:
-            return np.array([   [0,       0,       0,       0,       0,       0,       0], #GPS_x
-                                [0,       0,       0,       0,       0,       0,       0], #GPS_y
-                                [0,       0,       0,       0,       0,       0,       0], #Theta_Gps
-                                [0,       0,       1,       0,       0,       0,       0], #Theta_mag
-                                [0,       0,       0,       0,       0,       0,       0], #V_gps
-                                [0,       0,       0,       0,       1,       0,       0], #omega_gyro
-                                [0,       0,       0,       0,       0,       0,       0], # Sl_sens
-                                [0,       0,       0,       0,       0,       0,       0]]) # Sr_sens
+            return np.array([   [0,       0,       0,       0,       0 ], #GPS_x
+                                [0,       0,       0,       0,       0 ], #GPS_y
+                                [0,       0,       0,       0,       0 ], #Theta_Gps
+                                [0,       0,       1,       0,       0 ], #Theta_mag
+                                [0,       0,       0,       0,       0 ], #V_gps
+                                [0,       0,       0,       0,       1 ]]) #omega_gyro
 
 
 
