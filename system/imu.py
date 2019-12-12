@@ -70,7 +70,7 @@ class IMU:
                         
                         self.gx = gx * math.pi/180.0 # Convert deg/s to rad/s
                         self.gy = gy * math.pi/180.0 # Convert deg/s to rad/s
-                        self.gz = -gz * math.pi/180.0 # Convert deg/s to rad/s
+                        self.gz = gz * math.pi/180.0 # Convert deg/s to rad/s
                         # self.ax = float(data["ax"])
                         # self.ay = float(data["ay"])
                         # self.az = float(data["az"])
@@ -81,7 +81,7 @@ class IMU:
                         
                         self.data[0] = self.gx
                         self.data[1] = self.gy
-                        self.data[2] = -self.gz
+                        self.data[2] = self.gz
     
                 except Exception as error:
                     errors.append( ['Sensors', 'Failed to translate string'] )

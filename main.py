@@ -25,6 +25,21 @@ con.navigation.setPath(path)
 car.gui.setPathSource(path)
 car.gui.setGpsSource(car.gps.data)
 
+# Buffers for redoing Kalman with delayed GPS speed
+
+leftWheelBuf = [0] * 10
+rightWheelBuf = [0] * 10
+headingBuf = [0] * 10
+gyroBuf = [0] * 10
+gpsSpeedBuf = [0] * 10
+gpsPosBuf = [None] * 10
+muBuf = [None] * 10
+sigmaBuf = [None] * 10
+
+kalCount = [0]
+
+otherData = [0]
+
 
 # Tell the Logging object where from to get the log data
 
@@ -71,6 +86,11 @@ car.log.addMeasurements(
     ['Easting', 'Northing']
 )
 
+car.log.addMeasurements(
+    otherData,
+    ['GPS Available']
+)
+
 car.compass.connect('COM6')
 car.gps.connect('COM13')
 car.imu.connect('COM14')
@@ -80,18 +100,7 @@ car.imu.getData()
 car.compass.getData()
 
 
-# Buffers for redoing Kalman with delayed GPS speed
 
-leftWheelBuf = [0] * 10
-rightWheelBuf = [0] * 10
-headingBuf = [0] * 10
-gyroBuf = [0] * 10
-gpsSpeedBuf = [0] * 10
-gpsPosBuf = [None] * 10
-muBuf = [None] * 10
-sigmaBuf = [None] * 10
-
-kalCount = [0]
 
 # Function to run at control loop speed
 def excecuteControl():
@@ -101,6 +110,8 @@ def excecuteControl():
     
     # Inputdata for Kalman
     gpsPos, gpsSpeed, dataStatus = car.gps.getNewestData()
+    
+    otherData[0] = dataStatus;
     
     # Control via xbox controller
     if car.var.gamepadEnabled:
@@ -156,27 +167,29 @@ def excecuteControl():
                     gpsPosBuf.insert(0, gpsPos)
                     muBuf.insert(0, con.EKF.mu)
                     sigmaBuf.insert(0, con.EKF.sigma)
+                    
+                    #shiftedSpeed[0] = gpsSpeedBuf[6]
 
                     # New GPS reading.The speed is approximately 7 samples behind everything else, thus we recalculate Kalman for these samples
-                    if dataStatus and kalCount[0] > 10:
+                    if dataStatus and kalCount[0] == -1:
                         for i in range(7):
                             
                             if i == 0:
                                 con.EKF.sigma = sigmaBuf[7]
                                 con.EKF.mu = muBuf[7]
                             
-                            con.EKF.updateEKF(leftWheelBuf[6-i], rightWheelBuf[6-i], gpsPosBuf[6-i][0], gpsPosBuf[6-i][1], headingBuf[6-i], headingBuf[6-i], gpsSpeedBuf[6-i], gyroBuf[6-i], dataStatus)
+                            con.EKF.updateEKF(leftWheelBuf[6-i], rightWheelBuf[6-i], gpsPosBuf[6-i][0], gpsPosBuf[6-i][1], headingBuf[6-i], headingBuf[6-i], gpsSpeedBuf[0], gyroBuf[6-i], dataStatus)
                             dataStatus = 0
                             
                     else:
-                        kalCount[0] = kalCount[0] + 1
+                        #kalCount[0] = kalCount[0] + 1
                         con.EKF.updateEKF(leftWheel, rightWheel, gpsPos[0], gpsPos[1], car.compass.heading, car.compass.heading, car.gps.linear_speed, car.imu.gz, dataStatus)
                                    
                     #speed = con.navigation.run(actualPos, car.compass.heading, car.gps.superSpeed, car.imu.gz)
                      
                     # Test step-response
-                    velRef = 1 # m/s
-                    rotRef = 0 # rad/s
+                    velRef = 0.5 # m/s
+                    rotRef = 0.2# rad/s
                     speed = con.navigation.controller.run(velRef, rotRef, float(con.EKF.mu[3]), float(con.EKF.mu[4]))
                     
                     if car.motors.ready:
@@ -187,8 +200,13 @@ def excecuteControl():
                 
         else:
             
+            if initKalman[0]:
+                print("DU SLAP DIN ABEKAT")
+                
             initKalman[0] = False
             kalCount[0] = 0
+            
+            
             
             if car.motors.ready:
                 car.motors.setCurrent( 0 , 0)
@@ -219,7 +237,7 @@ while( car.gui.appOpen ):
 
     cpu_usage = ((time.time() - start_time)/0.025)*100;
     if cpu_usage > 100:
-        pass #print("CPU-TIME:", round(cpu_usage,2) )
+        print("CPU-TIME:", round(cpu_usage,2) )
     
     excecution_time = time.time() - start_time;
     

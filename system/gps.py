@@ -97,7 +97,7 @@ class GPS:
                     tempString = self.ser.readline().decode().strip('\r\n')
             except Exception as error:
                 self.connected = False
-                print("MARK SIGER STOOOP")
+                print("ERROR", error)
         
             # Every line from buffer is read, now use the newest to get data
             if tempString != '':

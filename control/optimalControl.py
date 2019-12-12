@@ -23,8 +23,8 @@ class OptimalControl:
         self.r = 0.28                                     #wheel radius
         
         self.map = np.array([
-            [1/self.r, self.L/(2*self.r)],
-            [1/self.r, -self.L/(2*self.r)]
+            [1/self.r, -self.L/(2*self.r)],
+            [1/self.r, self.L/(2*self.r)]
         ])
 
     def run(self,velocityReference, omegaReference, velocityActual, omegaActual):
