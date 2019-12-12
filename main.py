@@ -137,8 +137,8 @@ def excecuteControl():
                     #speed = con.navigation.run(actualPos, car.compass.heading, car.gps.superSpeed, car.imu.gz)
                      
                     # Test step-response
-                    velRef = 0.5 # m/s
-                    rotRef = 0# rad/s
+                    velRef = 1.0# m/s
+                    rotRef = 1.0# rad/s
                     speed = con.navigation.controller.run(velRef, rotRef, float(con.EKF.mu[3]), float(con.EKF.mu[4]))
                     
                     if car.motors.ready:

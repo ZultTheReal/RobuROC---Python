@@ -10,13 +10,13 @@ class OptimalControl:
                                                                     # Settings
         self.refGain = np.array([
             [2*1, 0],
-            [0,      1.9795]
+            [0,      2*1.1449]
         ])
         
         # Kr
         self.feedbackGain = np.array([
             [0.9764, 0],
-            [0,      0.2712]
+            [0,      0.5878]
         ])
         
         self.L = 0.685                                              #axle width
