@@ -115,7 +115,7 @@ class EKF:
         self.sigma = (np.identity(nrStates) - self.K @ self.H) @ self.sigma
 
         # Correct slip since it cannot be below zero
-        # self.mu[5,0],self.mu[6,0] = self.correctSlip(self.mu[5,0],self.mu[6,0])
+        self.mu[5,0],self.mu[6,0] = self.correctSlip(self.mu[5,0],self.mu[6,0])
         
         print("SLIP:", round(float(self.mu[5,0]),4), round(float(self.mu[6,0]),4), "Wheel:", round(((omegaLw + omegaRw)/2)*WHEEL_RADIUS,2), "GPS:", round(V_gps,4), "EKF:", round(float(self.mu[3,0]),4))
         

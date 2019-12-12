@@ -67,13 +67,15 @@ class Logging:
         if self.startLogging:
             # Calculate the timestamp for this measurement
             now = time.time() - self.logStartTime
+            try:
+                string = locale.format('%.4f', now ) + ';'
             
-            string = locale.format('%.4f', now ) + ';'
-            
-            for i in range( len(self.data) ):
-                for j in range( len(self.data[i]) ):
-                    string += locale.format('%.6f', self.data[i][j]) + ';'
-               
+                for i in range( len(self.data) ):
+                    for j in range( len(self.data[i]) ):
+                        string += locale.format('%.10f', self.data[i][j]) + ';'
+            except Exception as error:
+                print("LOGGING:", error)
+                
             string += '\n'
             
             self.log.write(string)

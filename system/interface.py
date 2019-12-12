@@ -19,7 +19,7 @@ import utm
 appTitle = 'RoboRUC Control Panel'
 rowTitles = ['Motor','Current [A]','Velocity [m/s]']
 
-gpsTitles = ['Heading', 'Latitude', 'Lontitude', 'Speed', 'Sat. count']
+dataTitles = ['gZ', 'GPS speed', 'GPS count']
 motorTitle = ['Left', 'Right']
 
 class Interface:
@@ -38,6 +38,7 @@ class Interface:
     # Pointer to data sources for gui
     gpsDataSource = None
     velDataSource = None
+    gyroDataSource = None
     curDataSource = None
     pathDataSource = None
     
@@ -91,9 +92,9 @@ class Interface:
         dataBox.configure(background='black')
         dataBox.pack(pady=30)
         
-        gpsBox = tk.Frame(leftFrame)
-        gpsBox.configure(background='black')
-        gpsBox.pack(pady=30)
+        extraDataBox = tk.Frame(leftFrame)
+        extraDataBox.configure(background='black')
+        extraDataBox.pack(pady=30)
     
 
 
@@ -102,14 +103,14 @@ class Interface:
         footerBox.pack(side=tk.BOTTOM, pady=20)
         
         # Box for inputting GPS coordinates to follow
-        pathBox = tk.Frame(leftFrame)
-        pathBox.configure(background='black')
-        pathBox.pack(side=tk.BOTTOM, pady=20)
+        #pathBox = tk.Frame(leftFrame)
+        #pathBox.configure(background='black')
+        #pathBox.pack(side=tk.BOTTOM, pady=20)
         
-        self.gpsInput = tk.Entry(pathBox, width=60)
-        self.gpsInput.grid(row=0, column=0, ipady=10, pady=40, padx=5, sticky='we')
-        self.gpsBtn = ttk.Button(pathBox, text="Add coordinate", command=self.addPath, style='sm.TButton')
-        self.gpsBtn.grid(row=0, column=1, ipady=3, padx=10, ipadx=10, pady=40, sticky='e')
+        #self.gpsInput = tk.Entry(pathBox, width=60)
+        #self.gpsInput.grid(row=0, column=0, ipady=10, pady=40, padx=5, sticky='we')
+        #self.gpsBtn = ttk.Button(pathBox, text="Add coordinate", command=self.addPath, style='sm.TButton')
+        #self.gpsBtn.grid(row=0, column=1, ipady=3, padx=10, ipadx=10, pady=40, sticky='e')
         
         # Right frame
         
@@ -181,19 +182,19 @@ class Interface:
             self.titleLabel[i].grid(row=i, column=0, padx=5, sticky='w')
             
         
-        for i in range(5):
+        for i in range(3):
             
-            gpsBox.grid_columnconfigure(i, minsize=150)
+            extraDataBox.grid_columnconfigure(i, minsize=150)
             
-            self.gpsTitleLabel[i] = ttk.Label(gpsBox, text=gpsTitles[i], font=("Calibri", 18), foreground="white", background="black")
+            self.gpsTitleLabel[i] = ttk.Label(extraDataBox, text=dataTitles[i], font=("Calibri", 18), foreground="white", background="black")
             self.gpsTitleLabel[i].grid(row=0, column=i, padx=5, sticky='w')
             
-            self.gpsDataLabel[i] = ttk.Label(gpsBox, text='0', font=("Calibri", 18), foreground="white", background="black")
+            self.gpsDataLabel[i] = ttk.Label(extraDataBox, text='0', font=("Calibri", 18), foreground="white", background="black")
             self.gpsDataLabel[i].grid(row=1, column=i, padx=5, sticky='e')
     
     
-        gpsBox.grid_rowconfigure(0, weight=1)
-        gpsBox.grid_rowconfigure(1, weight=1)
+        extraDataBox.grid_rowconfigure(0, weight=1)
+        extraDataBox.grid_rowconfigure(1, weight=1)
     
         #self.setupGraph()
         
@@ -239,6 +240,9 @@ class Interface:
             self.paths.insert(tk.END, string)
     
     
+    def setGyroSource(self, source):
+        self.gyroDataSource = source
+        
     def setPathSource(self, source):
         self.pathDataSource = source
         self.updatePath()
@@ -287,8 +291,10 @@ class Interface:
             self.velLabel[i]['text'] = motors.actualVel[i]
             self.curLabel[i]['text'] = motors.actualCur[i]
           
-        for i in range(5):
-            self.gpsDataLabel[i]['text'] = round(self.gpsDataSource[i],6)
+        
+        self.gpsDataLabel[0]['text'] = round(self.gyroDataSource[2],6)
+        self.gpsDataLabel[1]['text'] = round(self.gpsDataSource[3],4)
+        self.gpsDataLabel[2]['text'] = round(self.gpsDataSource[4],4)
         
         self.root.update()
         

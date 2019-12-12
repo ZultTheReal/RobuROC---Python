@@ -120,12 +120,17 @@ class GPS:
         
         nmea_str = nmea_str.replace('$','') # Remove dollar sign (not needed/not to be counted in CRC)
         temp = nmea_str.split("*") #Remove checksum at end of nmea_str and save
+        
         if len(temp) is 2 and temp[1] is not '':
             
-            CRC1 = int(temp[1], 16) #convert checksum to integer from hex nmea_str
+            try:
+                CRC1 = int(temp[1], 16) #convert checksum to integer from hex nmea_str
 
-            nmea_str = temp[0] 
-            CRC2 = self.checksum(nmea_str) #Calculate checksum for received nmea_str 
+                nmea_str = temp[0] 
+                CRC2 = self.checksum(nmea_str) #Calculate checksum for received nmea_str
+            except Exception as error:
+                errors.append( ['GPS', 'Weird checksum error'] )
+                return 0
             
             if CRC1 is CRC2: # if the two checksums match update the GPS info
                 temp = nmea_str.split(",")
@@ -142,7 +147,8 @@ class GPS:
                     self.altitude = self.floatOrZero(temp[9])
                     
                     # Convert to radians
-                    angle = self.floatOrZero(temp[11]) * math.pi/180;
+                    angle = 2*math.pi - self.floatOrZero(temp[11]) * math.pi/180;
+                    angle = angle + math.pi/2;
                     # Wrap to pi
                     self.heading = (angle) % (2 * math.pi)
                     
@@ -154,6 +160,14 @@ class GPS:
                     utmdat = self.getUTM()
                     self.utmData[0] = utmdat[0]
                     self.utmData[1] = utmdat[1]
+                        
+                        
+                    if (self.linear_speed and self.heading) is 0.0:
+                        
+                        for i in range(5):
+                            self.data[i] = 0.0
+                        
+                        return 0
             
                 except Exception as error:
                     print(error)
@@ -169,13 +183,14 @@ class GPS:
                 
                 if self.sat_count != 0:
                     return 1
-                else:
-                    return 0
+                
+                return 0
     
             else:
                 errors.append( ['GPS', 'Checksum doesn\'t match'] )
                 #print(temp)
-                return 0
+                
+            return 0
     
     def LPF( self, newSample, oldSample, alpha ):
         return (alpha * newSample) + (1.0-alpha) * oldSample  
