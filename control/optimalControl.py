@@ -19,7 +19,7 @@ class OptimalControl:
         #    [0,      0.2712]
         #])
 
-        testNumber = 1
+        testNumber = 7
 
         self.refGains = [
             np.array([
@@ -83,7 +83,7 @@ class OptimalControl:
             ])
         ]
 
-        self.refGain = 1 * self.refGains[testNumber-1]
+        self.refGain = 2 * self.refGains[testNumber-1]
         self.feedbackGain = self.feedbackGains[testNumber-1]
 
         print("refGain:", self.refGain)
