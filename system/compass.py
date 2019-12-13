@@ -13,9 +13,10 @@ class Compass:
     
     my_max = 22031.5
     my_min = -25075.3
+
+    heading = 0
     
     def __init__(self):
-        self.heading = 0     # Heading measurement from OS5000 (not accurate, because it is mounted on a fawking stick.
         self.mx = 0          # Magnetometer reading in x
         self.my = 0          # Magnetometer reading in y
         self.mz = 0          # Magnetometer reading in z

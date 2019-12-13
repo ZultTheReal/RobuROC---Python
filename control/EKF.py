@@ -19,13 +19,22 @@ class EKF:
     Sl = 0.0
     Sr = 0.0
     
-    Sl_prev = 0.0
-    Sr_prev = 0.0
+    sampleCount = 0
+    startSlipEstimate = 20
+    
+    Sr_prev = 0
+    Sl_prev = 0
+    
+    slipLPFCutoff = 0.05
+    VbLPFCutoff = 0.2
+    OmegaCutoff = 0.2
+    Vb_prev = 0
+
+    mu = np.zeros((nrStates,1)) # X, Y, Theta, Vb, Omega, Sl, Sr
+    sigma = np.zeros((nrStates,nrStates))
     
     def __init__(self):
         
-        self.mu = np.zeros((nrStates,1)) # X, Y, Theta, Vb, Omega, Sl, Sr
-        self.sigma = np.zeros((nrStates,nrStates))
         self.G = np.zeros((nrStates,nrStates))
         self.H = np.zeros((nrStates,nrSensors))
         self.K = np.zeros((nrStates,nrSensors))
@@ -34,29 +43,33 @@ class EKF:
         
 
         #State space covariance
-        self.R = np.array([[1e-10,  0,      0,      0,      0,      0,      0],  # X
+        self.R = np.array([[1e-10,  0,      0,      0,      0,      0,      0 ],  # X
                            [0,      1e-10,  0,      0,      0,      0,      0 ],  # Y
                            [0,      0,      1e-7,   0,      0,      0,      0 ],  # Theta
                            [0,      0,      0,      1e-6,   0,      0,      0 ],  # Vb
                            [0,      0,      0,      0,      1e-3,   0,      0 ], # Omega
-                           [0,      0,      0,      0,      0,      1e-4,   0],  # Sl
-                           [0,      0,      0,      0,      0,      0,      1e-4]]) #Sr
+                           [0,      0,      0,      0,      0,      1e-2,   0 ],  # Sl
+                           [0,      0,      0,      0,      0,      0,      1e-2]]) #Sr
 
         #Sensor covariance
         self.Q = np.array([[1e-7,   0,      0,      0,      0,      0   ],  # X_gps
                            [0,      1e-7,   0,      0,      0,      0   ],  # Y_gps
                            [0,      0,      1e-2,   0,      0,      0   ],  # Theta_gps
                            [0,      0,      0,      1e-8,   0,      0   ],  # Theta_mag
-                           [0,      0,      0,      0,      1e-4,   0   ],  # V_gps
+                           [0,      0,      0,      0,      5e-4,   0   ],  # V_gps
                            [0,      0,      0,      0,      0,      1e-7]]) # Omega_gyro 
 
     def set_Init(self,gpsX,gpsY,magTheta):
         self.mu = np.array([[gpsX],[gpsY],[magTheta],[0],[0],[self.Sl],[self.Sr]]) #Init mu with expected values
         self.sigma = self.R
+        self.sampleCount = 0
         return
 
     
     def correctSlip(self,Sl,Sr): #Function to make sure slip never gets below zero or above 1 
+        
+        #if self.sampleCount > self.startSlipEstimate:
+        
         if Sl < 0:
             Sl = 0
         elif Sl > 1:
@@ -65,8 +78,19 @@ class EKF:
         if Sr < 0:
             Sr = 0
         elif Sr > 1:
-            Sr = 1 
+            Sr = 1
+            
+        # Lowpas filtration of Slip
+        
+        Sl = self.LPF( Sl, self.Sl_prev, self.slipLPFCutoff )
+        Sr = self.LPF( Sr, self.Sr_prev, self.slipLPFCutoff )
+    
+        self.Sl_prev = Sl
+        self.Sr_prev = Sr
+        
         return Sl, Sr
+
+        #return 0,0
 
     def correctGps(self,Theta_Gps,Theta_mag):
         if (Theta_Gps < eTol) and (Theta_mag > (2*np.pi - eTol)): #eg. Gps 0.1pi, mag 1.9pi --> Gps becoms 2.1pi
@@ -87,7 +111,10 @@ class EKF:
 
     def updateEKF(self, omegaLw, omegaRw, X_gps, Y_gps, Theta_gps, Theta_mag, V_gps, Omega_gyro, gpsAvailble):
         
-        
+        if self.sampleCount > 0:
+            omegaLw = self.LPF(omegaLw, float(self.u[0,0]), self.OmegaCutoff)
+            omegaRw = self.LPF(omegaRw, float(self.u[1,0]), self.OmegaCutoff)
+
         Theta_gps = self.correctGps(Theta_gps,Theta_mag)
 
         # u is the input vector containing omegaLw and omegaRw
@@ -117,32 +144,58 @@ class EKF:
         # Correct slip since it cannot be below zero
         self.mu[5,0],self.mu[6,0] = self.correctSlip(self.mu[5,0],self.mu[6,0])
         
+        # LPF of estimated Vb
+        self.mu[3,0] = self.LPF( self.mu[3,0], self.Vb_prev, self.VbLPFCutoff )
+        self.Vb_prev = self.mu[3,0]
+        
         print("SLIP:", round(float(self.mu[5,0]),4), round(float(self.mu[6,0]),4), "Wheel:", round(((omegaLw + omegaRw)/2)*WHEEL_RADIUS,2), "GPS:", round(V_gps,4), "EKF:", round(float(self.mu[3,0]),4))
         
         for x in range(nrStates):
             self.data[x] = float(self.mu[x])
         #print("slipEstimate:", self.mu[5],self.mu[6])
 
+        self.sampleCount = self.sampleCount + 1
+
     def LPF( self, newSample, oldSample, alpha ):
         return (alpha * newSample) + (1.0-alpha) * oldSample 
         
     def gFunc(self,mu,u):
-        return np.array([[mu[0,0] + dt*np.cos(mu[2,0])*mu[3,0]],  #x  = mu[0,0]
-                         [mu[1,0] + dt*np.sin(mu[2,0])*mu[3,0]],  #y  = mu[1,0]
-                         [mu[2,0] + dt*mu[4,0]],  #theta = mu[2,0]
-                         [(u[0,0]*WHEEL_RADIUS*(1-mu[5,0]) + u[1,0]*WHEEL_RADIUS*(1-mu[6,0]))/2], #Vb = mu[3,0]
-                         [(-u[0,0]*WHEEL_RADIUS*(1-mu[5,0]) + u[1,0]*WHEEL_RADIUS*(1-mu[6,0]))/WIDTH_CAR], #omega = mu[4,0]
-                         [mu[5,0]], #Sl = mu[5,0]
-                         [mu[6,0]]]) #SR = mu[6,0]
+        if self.sampleCount > self.startSlipEstimate:
+            return np.array([[mu[0,0] + dt*np.cos(mu[2,0])*mu[3,0]],  #x  = mu[0,0]
+                                [mu[1,0] + dt*np.sin(mu[2,0])*mu[3,0]],  #y  = mu[1,0]
+                                [mu[2,0] + dt*mu[4,0]],  #theta = mu[2,0]
+                                [(u[0,0]*WHEEL_RADIUS*(1-mu[5,0]) + u[1,0]*WHEEL_RADIUS*(1-mu[6,0]))/2], #Vb = mu[3,0]
+                                [(-u[0,0]*WHEEL_RADIUS*(1-mu[5,0]) + u[1,0]*WHEEL_RADIUS*(1-mu[6,0]))/WIDTH_CAR], #omega = mu[4,0]
+                                [mu[5,0]], #Sl = mu[5,0]
+                                [mu[6,0]]]) #SR = mu[6,0]
+        else:
+            return np.array([[mu[0,0] + dt*np.cos(mu[2,0])*mu[3,0]],  #x  = mu[0,0]
+                                [mu[1,0] + dt*np.sin(mu[2,0])*mu[3,0]],  #y  = mu[1,0]
+                                [mu[2,0] + dt*mu[4,0]],  #theta = mu[2,0]
+                                [(u[0,0]*WHEEL_RADIUS + u[1,0]*WHEEL_RADIUS)/2], #Vb = mu[3,0]
+                                [(-u[0,0]*WHEEL_RADIUS + u[1,0]*WHEEL_RADIUS)/WIDTH_CAR], #omega = mu[4,0]
+                                [0], #Sl = mu[5,0]
+                                [0]]) #SR = mu[6,0]
 
-    def Gmatrix(self,mu,u):
-        return np.array([[1,    0,  -dt*mu[3,0]*np.sin(mu[2,0]),    dt*np.cos(mu[2,0]),     0,      0,                              0],
-                         [0,    1,  dt*mu[3,0]*np.cos(mu[2,0]),     dt*np.sin(mu[2,0]),     0,      0,                              0],
-                         [0,    0,  1,                              0,                      dt,     0,                              0],
-                         [0,    0,  0,                              0,                      0,      -WHEEL_RADIUS*u[0,0]/2,         -WHEEL_RADIUS*u[1,0]/2],
-                         [0,    0,  0,                              0,                      0,      WHEEL_RADIUS*u[0,0]/WIDTH_CAR,  -WHEEL_RADIUS*u[1,0]/WIDTH_CAR],
-                         [0,    0,  0,                              0,                      0,      1,                              0],
-                         [0,    0,  0,                              0,                      0,      0,                              1]])
+
+    def Gmatrix(self,mu,u):   
+        if self.sampleCount > self.startSlipEstimate:   
+            return np.array([[1,    0,  -dt*mu[3,0]*np.sin(mu[2,0]),    dt*np.cos(mu[2,0]),     0,      0,                              0],
+                            [0,    1,  dt*mu[3,0]*np.cos(mu[2,0]),     dt*np.sin(mu[2,0]),     0,      0,                              0],
+                            [0,    0,  1,                              0,                      dt,     0,                              0],
+                            [0,    0,  0,                              0,                      0,      -WHEEL_RADIUS*u[0,0]/2,         -WHEEL_RADIUS*u[1,0]/2],
+                            [0,    0,  0,                              0,                      0,      WHEEL_RADIUS*u[0,0]/WIDTH_CAR,  -WHEEL_RADIUS*u[1,0]/WIDTH_CAR],
+                            [0,    0,  0,                              0,                      0,      1,                              0],
+                            [0,    0,  0,                              0,                      0,      0,                              1]])
+        else:
+            return np.array([[1,    0,  -dt*mu[3,0]*np.sin(mu[2,0]),    dt*np.cos(mu[2,0]),     0,      0,                             0],
+                            [0,    1,  dt*mu[3,0]*np.cos(mu[2,0]),     dt*np.sin(mu[2,0]),     0,      0,                              0],
+                            [0,    0,  1,                              0,                      dt,     0,                              0],
+                            [0,    0,  0,                              0,                      0,      0,                              0],
+                            [0,    0,  0,                              0,                      0,      0,                              0],
+                            [0,    0,  0,                              0,                      0,      0,                              0],
+                            [0,    0,  0,                              0,                      0,      0,                              0]])
+
 
     def Hmatrix(self,gpsAvailble):
         if gpsAvailble == 1:   # x        y      Theta      Vb     Omega     sl        sr     

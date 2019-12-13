@@ -97,7 +97,7 @@ def excecuteControl():
     # Inputdata for Kalman
     gpsPos, gpsSpeed, dataStatus = car.gps.getNewestData()
     
-    otherData[0] = dataStatus;
+    otherData[0] = dataStatus
     
     # Control via xbox controller
     if car.var.gamepadEnabled:
@@ -129,16 +129,16 @@ def excecuteControl():
                     con.EKF.set_Init(gpsPos[0],gpsPos[1],car.compass.heading) #init kalman with x, y and theta
                 else:
                 
-                    leftWheel = (car.motors.actualVel[0] + car.motors.actualVel[3])/(2*car.WHEEL_RADIUS);
-                    rightWheel = (car.motors.actualVel[1] + car.motors.actualVel[2])/(2*car.WHEEL_RADIUS);
+                    leftWheel = (car.motors.actualVel[0] + car.motors.actualVel[3])/(2*car.WHEEL_RADIUS)
+                    rightWheel = (car.motors.actualVel[1] + car.motors.actualVel[2])/(2*car.WHEEL_RADIUS)
 
  
-                    con.EKF.updateEKF(leftWheel, rightWheel, gpsPos[0], gpsPos[1], car.gps.heading, car.compass.heading, car.gps.linear_speed, car.imu.gz, dataStatus)
+                    con.EKF.updateEKF(leftWheel, rightWheel, gpsPos[0], gpsPos[1], car.gps.heading, car.compass.heading, gpsSpeed, car.imu.gz, dataStatus)
                     #speed = con.navigation.run(actualPos, car.compass.heading, car.gps.superSpeed, car.imu.gz)
                      
                     # Test step-response
-                    velRef = 1.0# m/s
-                    rotRef = 1.0# rad/s
+                    velRef = 0.8# m/s
+                    rotRef = 0.2# rad/s
                     speed = con.navigation.controller.run(velRef, rotRef, float(con.EKF.mu[3]), float(con.EKF.mu[4]))
                     
                     if car.motors.ready:
@@ -179,13 +179,13 @@ while( car.gui.appOpen ):
     
     car.gui.update()
 
-    excecuteControl();
+    excecuteControl()
 
-    cpu_usage = ((time.time() - start_time)/0.025)*100;
+    cpu_usage = ((time.time() - start_time)/0.025)*100
     if cpu_usage > 100:
         print("CPU-TIME:", round(cpu_usage,2) )
     
-    excecution_time = time.time() - start_time;
+    excecution_time = time.time() - start_time
     
     if excecution_time < 0.025:
         # Sleep the 
