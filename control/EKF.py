@@ -26,8 +26,8 @@ class EKF:
     Sl_prev = 0
     
     slipLPFCutoff = 0.05
-    VbLPFCutoff = 0.2
-    OmegaCutoff = 0.2
+    VbLPFCutoff = 0.15
+    OmegaCutoff = 0.15
     Vb_prev = 0
 
     mu = np.zeros((nrStates,1)) # X, Y, Theta, Vb, Omega, Sl, Sr
