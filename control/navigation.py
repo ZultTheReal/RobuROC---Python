@@ -16,11 +16,12 @@ class Navigation:
     
     maxAimLen = 4.0  # Length from the point orthogonal to the route for which to aim
     minAimLen = 2.0  # Minimum length as to not slow down entirely
-    deadzone = 1.0 # Deadzone, when the vehicle is within the radius of the target - change target.
+    deadzone = 4 # Deadzone, when the vehicle is within the radius of the target - change target.
     
     # Simpel P-controller gains (unitconversion)
     velGain = 0.4   # velGain * maxAimLen = maxSpeed
-    rotGain = -0.25
+    rotGain = 1.0
+
 
     def __init__(self):
         self.reset()
@@ -120,7 +121,7 @@ class Navigation:
     
         
         # Log the path-algorithm to Google Map
-        self.logToMap( actualPos, heading, orthPoint, aimPoint )
+        # self.logToMap( actualPos, heading, orthPoint, aimPoint )
         
         return aimDistance, thetaError
 

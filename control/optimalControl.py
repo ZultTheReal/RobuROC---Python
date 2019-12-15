@@ -19,7 +19,7 @@ class OptimalControl:
         #    [0,      0.2712]
         #])
 
-        testNumber = 7
+        testNumber = 1
 
         self.refGains = [
             np.array([

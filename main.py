@@ -13,11 +13,18 @@ initKalman = [False]
 
 path = list()
 
-path.append([559998.14, 6319386.08])
-path.append([560032.37, 6319383.35])
-path.append([560032.37, 6319368.05])
-path.append([559998.14, 6319368.05])
-path.append([559998.14, 6319386.08])
+#path.append([559998.14, 6319386.08])
+#path.append([560032.37, 6319383.35])
+#path.append([560032.37, 6319368.05])
+#path.append([559998.14, 6319368.05])
+#path.append([559998.14, 6319386.08])
+
+
+path.append([560014, 6319384])
+path.append([560034, 6319384])
+path.append([560034, 6319359])
+path.append([560014, 6319359])
+path.append([560014, 6319384])
 
 
 con.navigation.setPath(path)
@@ -134,12 +141,12 @@ def excecuteControl():
 
  
                     con.EKF.updateEKF(leftWheel, rightWheel, gpsPos[0], gpsPos[1], car.gps.heading, car.compass.heading, gpsSpeed, car.imu.gz, dataStatus)
-                    #speed = con.navigation.run(actualPos, car.compass.heading, car.gps.superSpeed, car.imu.gz)
+                    speed = con.navigation.run(gpsPos, car.compass.heading, float(con.EKF.mu[3]), float(con.EKF.mu[4]))
                      
                     # Test step-response
-                    velRef = 0.8# m/s
-                    rotRef = 0.3# rad/s
-                    speed = con.navigation.controller.run(velRef, rotRef, float(con.EKF.mu[3]), float(con.EKF.mu[4]))
+                    #velRef = 1# m/s
+                    #rotRef = 0.5# rad/s
+                    #speed = con.navigation.controller.run(velRef, rotRef, float(con.EKF.mu[3]), float(con.EKF.mu[4]))
                     
                     if car.motors.ready:
                         car.motors.setRPS( 0 , speed[0])
