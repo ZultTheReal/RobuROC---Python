@@ -114,6 +114,8 @@ class EKF:
         if self.sampleCount > 0:
             omegaLw = self.LPF(omegaLw, float(self.u[0,0]), self.OmegaCutoff)
             omegaRw = self.LPF(omegaRw, float(self.u[1,0]), self.OmegaCutoff)
+            Omega_gyro = self.LPF(Omega_gyro, float(self.mu[4]), 0.1)
+
 
         Theta_gps = self.correctGps(Theta_gps,Theta_mag)
 

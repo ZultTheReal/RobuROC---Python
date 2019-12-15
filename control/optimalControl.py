@@ -24,7 +24,7 @@ class OptimalControl:
         self.refGains = [
             np.array([
                 [1.0003, 0],
-                [0,      1.1446]
+                [0,      1.1446*0.8]
             ]),
             np.array([
                 [10,     0],

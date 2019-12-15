@@ -95,6 +95,8 @@ car.gps.readData() # remeber that this should run untill first gps posistion
 car.imu.getData()
 car.compass.getData()
 
+counterButton = [0]
+
 # Function to run at control loop speed
 def excecuteControl():
     
@@ -129,6 +131,8 @@ def excecuteControl():
         # Else control via path finding
         elif car.gamepad.buttons()[1]:
             
+            counterButton[0] = 0
+
             if( car.gps.sat_count >= 0):
                 
                 if not initKalman[0]:
@@ -141,13 +145,23 @@ def excecuteControl():
 
  
                     con.EKF.updateEKF(leftWheel, rightWheel, gpsPos[0], gpsPos[1], car.gps.heading, car.compass.heading, gpsSpeed, car.imu.gz, dataStatus)
-                    speed = con.navigation.run(gpsPos, car.compass.heading, float(con.EKF.mu[3]), float(con.EKF.mu[4]))
-                     
-                    # Test step-response
-                    #velRef = 1# m/s
-                    #rotRef = 0.5# rad/s
-                    #speed = con.navigation.controller.run(velRef, rotRef, float(con.EKF.mu[3]), float(con.EKF.mu[4]))
+                    # speed = con.navigation.run(gpsPos, car.compass.heading, float(con.EKF.mu[3]), float(con.EKF.mu[4]))
+
                     
+
+                    # Test step-response
+                    velRef = 1 # m/s
+                    rotRef = 0.5 # rad/s
+                    speed = con.navigation.controller.run(velRef, rotRef, float(con.EKF.mu[3]), float(con.EKF.mu[4]))
+                    
+                    slipGainL = 1/(1-float(con.EKF.mu[5]))
+                    slipGainR = 1/(1-float(con.EKF.mu[6])) 
+
+                    #print(slipGainL, slipGainR)
+                     
+                    speed[0] = (speed[0] * slipGainL) if con.EKF.mu[5] < 0.4 else speed[0] * 1/0.6
+                    speed[1] = (speed[1] * slipGainR) if con.EKF.mu[6] < 0.4 else speed[1] * 1/0.6
+
                     if car.motors.ready:
                         car.motors.setRPS( 0 , speed[0])
                         car.motors.setRPS( 1 , -speed[1])
@@ -155,17 +169,21 @@ def excecuteControl():
                         car.motors.setRPS( 3 , speed[0])
                 
         else:      
-            if initKalman[0]:
-                print("DU SLAP (B) DIN ABEKAT!!")
+
+            counterButton[0] = counterButton[0] + 1
+
+            if(counterButton[0] > 20 ): 
+                if initKalman[0]:
+                    print("DU SLAP (B) DIN ABEKAT!!")
                 
-            initKalman[0] = False
+                initKalman[0] = False
             
   
-            if car.motors.ready:
-                car.motors.setCurrent( 0 , 0)
-                car.motors.setCurrent( 1 , 0 )
-                car.motors.setCurrent( 2 , 0 )
-                car.motors.setCurrent( 3 , 0 )
+                if car.motors.ready:
+                    car.motors.setCurrent( 0 , 0)
+                    car.motors.setCurrent( 1 , 0 )
+                    car.motors.setCurrent( 2 , 0 )
+                    car.motors.setCurrent( 3 , 0 )
 
 def getSensorData():
     while(1):
@@ -176,10 +194,30 @@ def getSensorData():
 thread = Thread(target = getSensorData)
 thread.start()
 
+toggleLog = False
+
 while( car.gui.appOpen ):
     
     start_time = time.time()
     
+    if car.var.gamepadEnabled:
+        if car.gamepad.buttons()[2]: # If button A is pressed
+            if not toggleLog:
+                if car.var.loggingEnabled:
+                    print("Not logging")
+                    car.var.loggingEnabled = False
+                    car.log.stop()
+                else:
+                    print("Logging")
+                    car.var.loggingEnabled = True
+                    car.log.begin()
+                toggleLog = True
+                
+                
+            
+        else:
+            toggleLog = False
+
      # Log with the frequency the function is called
     if car.var.loggingEnabled:
         car.log.addLine()
