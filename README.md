@@ -1,2 +1,2 @@
 # RobuROC---Python
-RobuROC project using Raspberry PI and Python
+RobuROC project using Intel NUC and Python
