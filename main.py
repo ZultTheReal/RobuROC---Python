@@ -5,7 +5,7 @@ import control as con
 import time
 import math
 import utm
-# import httpServer
+#import httpServer
 
 from threading import Thread
 
@@ -26,7 +26,11 @@ path = list()
 #path.append([560014, 6319359])
 #path.append([560014, 6319384])
 
-
+#path.append([559705, 6319173.31])
+#path.append([559743, 6319173.31])
+#path.append([559743, 6319193.31])
+#path.append([559705, 6319193.31])
+#path.append([559705, 6319173.31])
 
 path.append([559705, 6319253.15])
 path.append([559705, 6319233.15])
@@ -156,22 +160,22 @@ def excecuteControl():
 
  
                     con.EKF.updateEKF(leftWheel, rightWheel, gpsPos[0], gpsPos[1], car.gps.heading, car.compass.heading, gpsSpeed, car.imu.gz, dataStatus)
-                    # speed = con.navigation.run(gpsPos, car.compass.heading, float(con.EKF.mu[3]), float(con.EKF.mu[4]))
+                    speed = con.navigation.run(gpsPos, car.compass.heading, float(con.EKF.mu[3]), float(con.EKF.mu[4]))
 
                     
 
                     # Test step-response
-                    velRef = 1 # m/s
-                    rotRef = 0.5 # rad/s
-                    speed = con.navigation.controller.run(velRef, rotRef, float(con.EKF.mu[3]), float(con.EKF.mu[4]))
+                    #velRef = 1 # m/s
+                    #rotRef = 0.5 # rad/s
+                    #speed = con.navigation.controller.run(velRef, rotRef, float(con.EKF.mu[3]), float(con.EKF.mu[4]))
                     
-                    slipGainL = 1/(1-float(con.EKF.mu[5]))
-                    slipGainR = 1/(1-float(con.EKF.mu[6])) 
+                    #slipGainL = 1/(1-float(con.EKF.mu[5]))
+                    #slipGainR = 1/(1-float(con.EKF.mu[6])) 
 
                     #print(slipGainL, slipGainR)
                      
-                    speed[0] = (speed[0] * slipGainL) if con.EKF.mu[5] < 0.4 else speed[0] * 1/0.6
-                    speed[1] = (speed[1] * slipGainR) if con.EKF.mu[6] < 0.4 else speed[1] * 1/0.6
+                    #speed[0] = (speed[0] * slipGainL) if con.EKF.mu[5] < 0.4 else speed[0] * 1/0.6
+                    #speed[1] = (speed[1] * slipGainR) if con.EKF.mu[6] < 0.4 else speed[1] * 1/0.6
 
                     if car.motors.ready:
                         car.motors.setRPS( 0 , speed[0])
