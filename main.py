@@ -5,7 +5,7 @@ import control as con
 import time
 import math
 import utm
-#import httpServer
+# import httpServer
 
 from threading import Thread
 
@@ -20,12 +20,23 @@ path = list()
 #path.append([559998.14, 6319386.08])
 
 
-path.append([560014, 6319384])
-path.append([560034, 6319384])
-path.append([560034, 6319359])
-path.append([560014, 6319359])
-path.append([560014, 6319384])
+#path.append([560014, 6319384])
+#path.append([560034, 6319384])
+#path.append([560034, 6319359])
+#path.append([560014, 6319359])
+#path.append([560014, 6319384])
 
+
+
+path.append([559705, 6319253.15])
+path.append([559705, 6319233.15])
+path.append([559748.5, 6319233.15])
+path.append([559748.5, 6319213.15])
+path.append([559705, 6319213.15])
+path.append([559705, 6319233.15])
+path.append([559748.5, 6319233.15])
+path.append([559748.5, 6319253.15])
+path.append([559705, 6319253.15])
 
 con.navigation.setPath(path)
 
